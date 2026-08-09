@@ -9,16 +9,24 @@ export default function FinalCTA() {
   return (
     <section className="py-24 sm:py-32 bg-[#F4F4F0] border-t border-[#E4E1DA] relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        {/* Social Proof Logos Ribbon */}
+        {/* Social Proof Ribbon */}
         <div className="mb-20 pb-16 border-b border-[#E4E1DA]">
           <div className="text-[11px] font-mono uppercase tracking-widest text-[#666664] mb-8 font-semibold">
-            TRUSTED BY FORWARD-THINKING TEAMS
+            BUILT FOR STUDENTS, CREATORS, EXECUTIVE LEADERS & MODERN TEAMS
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-16 font-mono text-sm sm:text-base font-bold text-[#666664] opacity-70">
-            <span>ACME Corp</span>
-            <span>GLOBALSPACE</span>
-            <span className="font-serif italic font-normal text-lg">Vertex</span>
-            <span className="border border-[#E4E1DA] px-2 py-0.5 rounded text-xs">NEO</span>
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 font-mono text-xs sm:text-sm font-semibold text-[#111111]">
+            <span className="bg-white border border-[#E4E1DA] px-4 py-2 rounded-full shadow-subtle flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#FF6B35]" />
+              Executive Presenters
+            </span>
+            <span className="bg-white border border-[#E4E1DA] px-4 py-2 rounded-full shadow-subtle flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#2D7A58]" />
+              Startup Founders
+            </span>
+            <span className="bg-white border border-[#E4E1DA] px-4 py-2 rounded-full shadow-subtle flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#8B78A8]" />
+              Academic Researchers
+            </span>
           </div>
         </div>
 

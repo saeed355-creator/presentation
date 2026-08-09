@@ -38,6 +38,14 @@ const TOPIC_ASSETS: Record<string, string[]> = {
     'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80',
     'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80',
   ],
+  finance: [
+    'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=1200&q=80',
+  ],
+  cyber: [
+    'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80',
+    'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1200&q=80',
+  ],
   default: [
     'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
     'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=80',
@@ -48,15 +56,19 @@ export function getCuratedAssetUrl(topic: string, index: number): string {
   const lower = topic.toLowerCase();
   let pool = TOPIC_ASSETS.default;
 
-  if (lower.includes('health') || lower.includes('medical') || lower.includes('doctor') || lower.includes('hospital')) {
+  if (lower.includes('health') || lower.includes('medical') || lower.includes('doctor') || lower.includes('hospital') || lower.includes('patient')) {
     pool = TOPIC_ASSETS.healthcare;
-  } else if (lower.includes('tech') || lower.includes('ai') || lower.includes('data') || lower.includes('code') || lower.includes('network') || lower.includes('cyber')) {
+  } else if (lower.includes('cyber') || lower.includes('security') || lower.includes('shield') || lower.includes('hack')) {
+    pool = TOPIC_ASSETS.cyber;
+  } else if (lower.includes('finance') || lower.includes('invest') || lower.includes('bank') || lower.includes('fund') || lower.includes('stock')) {
+    pool = TOPIC_ASSETS.finance;
+  } else if (lower.includes('tech') || lower.includes('ai') || lower.includes('data') || lower.includes('code') || lower.includes('network') || lower.includes('software')) {
     pool = TOPIC_ASSETS.technology;
-  } else if (lower.includes('pitch') || lower.includes('business') || lower.includes('market') || lower.includes('finance') || lower.includes('revenue')) {
+  } else if (lower.includes('pitch') || lower.includes('business') || lower.includes('market') || lower.includes('revenue') || lower.includes('startup')) {
     pool = TOPIC_ASSETS.business;
-  } else if (lower.includes('climate') || lower.includes('energy') || lower.includes('green') || lower.includes('solar')) {
+  } else if (lower.includes('climate') || lower.includes('energy') || lower.includes('green') || lower.includes('solar') || lower.includes('environment')) {
     pool = TOPIC_ASSETS.climate;
-  } else if (lower.includes('education') || lower.includes('school') || lower.includes('learn') || lower.includes('student')) {
+  } else if (lower.includes('education') || lower.includes('school') || lower.includes('learn') || lower.includes('student') || lower.includes('university')) {
     pool = TOPIC_ASSETS.education;
   }
 
@@ -305,7 +317,7 @@ export async function generateAIPresentation(
     return generateFallbackPresentation(topic, audience, purpose, slideCount, tone, theme, customOutline);
   }
 
-  const modelCandidates = ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-pro'];
+  const modelCandidates = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-pro'];
 
   for (const modelName of modelCandidates) {
     try {
@@ -381,9 +393,7 @@ Schema:
         };
       });
 
-      const qualityScore = calculateQualityScore(slides, topic, purpose);
-
-      return {
+      const rawDeck: Presentation = {
         id,
         title: parsed.title || topic,
         subtitle: parsed.subtitle || `Present.AI Presentation Engine for ${audience}`,
@@ -396,13 +406,67 @@ Schema:
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         slides,
-        qualityScore,
+        qualityScore: calculateQualityScore(slides, topic, purpose),
       };
+
+      return validatePresentationQuality(rawDeck);
     } catch (err) {
       console.warn(`Gemini model ${modelName} notice:`, err);
     }
   }
 
   // Fallback if all Gemini model candidates throw an exception
-  return generateFallbackPresentation(topic, audience, purpose, slideCount, tone, theme, customOutline);
+  return validatePresentationQuality(generateFallbackPresentation(topic, audience, purpose, slideCount, tone, theme, customOutline));
+}
+
+// Validation & Auto-repair layer to guarantee presentation completeness
+export function validatePresentationQuality(deck: Presentation): Presentation {
+  if (!deck.title) deck.title = deck.topic || 'Untitled Presentation';
+  if (!deck.slides || deck.slides.length === 0) {
+    deck = generateFallbackPresentation(deck.topic || 'Business Strategy');
+  }
+
+  // Ensure every slide has valid properties
+  deck.slides = deck.slides.map((slide, i) => {
+    if (!slide.title) slide.title = `Slide 0${i + 1}`;
+    if (!slide.content || slide.content.length === 0) {
+      slide.content = [
+        `Key takeaway regarding ${deck.topic || 'strategic roadmap'}`,
+        'Actionable execution item for cross-functional alignment',
+      ];
+    }
+    if (!slide.layout) slide.layout = 'solution';
+
+    // Auto-repair missing layout-specific data
+    if (slide.layout === 'comparison' && !slide.comparison) {
+      slide.comparison = {
+        leftTitle: 'Legacy Approach',
+        leftItems: ['Manual layout friction', 'Unstructured narrative'],
+        rightTitle: 'Present.AI Engine',
+        rightItems: ['Automated layout intelligence', 'Widescreen PPTX export'],
+      };
+    }
+
+    if (slide.layout === 'process' && (!slide.processSteps || slide.processSteps.length === 0)) {
+      slide.processSteps = [
+        { stepNumber: 1, label: '01 Discovery', description: 'Parameter mapping' },
+        { stepNumber: 2, label: '02 Architecture', description: 'Narrative planning' },
+        { stepNumber: 3, label: '03 Styling', description: 'Editorial design system' },
+        { stepNumber: 4, label: '04 Export', description: 'Native PPTX & PDF' },
+      ];
+    }
+
+    if (slide.layout === 'chart' && !slide.chartData) {
+      slide.chartData = {
+        chartType: 'bar',
+        labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Target'],
+        series: [25, 48, 72, 95, 140],
+      };
+    }
+
+    return slide;
+  });
+
+  deck.qualityScore = calculateQualityScore(deck.slides, deck.topic, deck.purpose);
+  return deck;
 }
