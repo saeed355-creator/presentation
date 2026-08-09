@@ -15,9 +15,10 @@ export function middleware(request: NextRequest) {
     pathname === '/presentations' ||
     pathname === '/settings';
 
-  // Protected routes require session. If unauthenticated, redirect to sign-in with return URL
+  // Protected routes require session. If unauthenticated, redirect to landing page with Stitch auth modal query param
   if (isProtectedPage && !hasSessionCookie) {
-    const signInUrl = new URL('/sign-in', request.url);
+    const signInUrl = new URL('/', request.url);
+    signInUrl.searchParams.set('auth', 'signin');
     signInUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(signInUrl);
   }

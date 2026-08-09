@@ -57,10 +57,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
+    // Auto-trigger Stitch AuthModal if URL contains auth=signin or auth=signup query params
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const authParam = params.get('auth');
+      const redirectParam = params.get('redirect');
+
+      if (authParam === 'signin' || authParam === 'signup') {
+        setModalMode(authParam);
+        if (redirectParam) {
+          setPendingAction(() => () => router.push(redirectParam));
+        } else {
+          setPendingAction(() => () => router.push('/generate'));
+        }
+        setIsAuthModalOpen(true);
+      }
+    }
+
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [router]);
 
   const openAuthModal = (mode: 'signin' | 'signup' = 'signin', action?: () => void) => {
     setModalMode(mode);
