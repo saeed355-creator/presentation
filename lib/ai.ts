@@ -129,64 +129,282 @@ export function calculateQualityScore(
   };
 }
 
-// Generate Fallback Outline with Rich Slide Classification
+export type TopicDomain = 'academic' | 'startup_pitch' | 'history' | 'technology' | 'general';
+
+export function classifyTopicDomain(topic: string): TopicDomain {
+  const lower = topic.toLowerCase();
+  if (lower.includes('history') || lower.includes('space program') || lower.includes('war') || lower.includes('century') || lower.includes('revolution') || lower.includes('origin') || lower.includes('isro')) {
+    return 'history';
+  }
+  if (lower.includes('pitch') || lower.includes('startup') || lower.includes('investor') || lower.includes('fundraising') || lower.includes('business model')) {
+    return 'startup_pitch';
+  }
+  if (lower.includes('healthcare') || lower.includes('medical') || lower.includes('climate') || lower.includes('science') || lower.includes('biology') || lower.includes('research') || lower.includes('warming')) {
+    return 'academic';
+  }
+  if (lower.includes('blockchain') || lower.includes('network') || lower.includes('ev') || lower.includes('electric vehicle') || lower.includes('code') || lower.includes('software') || lower.includes('cyber') || lower.includes('ai') || lower.includes('tech')) {
+    return 'technology';
+  }
+  return 'general';
+}
+
+// Generate Dynamic Topic-Driven Fallback Outline
 export function generateFallbackOutline(
   topic: string,
   audience: AudienceType,
   purpose: PurposeType,
   slideCount: number = 8
 ): StoryOutlineItem[] {
-  const baseItems: { title: string; summary: string; layout: SlideLayoutType }[] = [
-    {
-      title: `The Genesis of ${topic.slice(0, 30)}`,
-      summary: `Setting the stage by exploring the initial spark and macro trends that made this imperative for ${audience}.`,
-      layout: 'title',
-    },
-    {
-      title: 'Market Landscape & Key Friction Points',
-      summary: `Detailing current state inefficiencies and critical pain points our narrative addresses.`,
-      layout: 'problem',
-    },
-    {
-      title: 'Core Strategic Architecture & Innovation',
-      summary: `Introducing the framework and unique technology that differentiates us from incumbents.`,
-      layout: 'solution',
-    },
-    {
-      title: 'Legacy Approach vs. Present.AI Story Engine',
-      summary: `Side-by-side contrast of manual slide friction versus automated presentation design.`,
-      layout: 'comparison',
-    },
-    {
-      title: 'Phased Implementation Workflow',
-      summary: `Step-by-step roadmap from raw idea dump to executive pitch deck.`,
-      layout: 'process',
-    },
-    {
-      title: 'Quantitative Impact & Key Metrics',
-      summary: `Demonstrating measurable efficiency gains, turnaround speed, and ROI.`,
-      layout: 'statistics',
-    },
-    {
-      title: 'Market Growth & Metric Performance',
-      summary: `Visualizing adoption trajectory and multi-year projection benchmarks.`,
-      layout: 'chart',
-    },
-    {
-      title: 'Real-World Architectural Impact',
-      summary: `Case study showcasing real enterprise deployment and strategic results.`,
-      layout: 'text-image',
-    },
-    {
-      title: 'Strategic Summary & Action Plan',
-      summary: `Synthesizing final recommendations and immediate next steps for decision-makers.`,
-      layout: 'conclusion',
-    },
-  ];
+  const domain = classifyTopicDomain(topic);
+  const cleanTopic = topic.trim();
+
+  let domainTemplates: { title: string; summary: string; layout: SlideLayoutType }[] = [];
+
+  if (domain === 'academic') {
+    domainTemplates = [
+      {
+        title: `${cleanTopic}: Executive Scientific Overview`,
+        summary: `Framing the critical research landscape, baseline context, and core hypothesis for ${audience}.`,
+        layout: 'title',
+      },
+      {
+        title: 'Core Research Problem & Existing Gaps',
+        summary: `Analyzing fundamental friction points, data limitations, and clinical/environmental impacts.`,
+        layout: 'problem',
+      },
+      {
+        title: 'Methodology & Conceptual Breakthrough',
+        summary: `Introducing the underlying scientific framework, key mechanisms, and analytical model.`,
+        layout: 'solution',
+      },
+      {
+        title: 'Legacy Approach vs. Advanced Methodology',
+        summary: `Side-by-side comparative analysis of traditional baseline metrics versus new empirical approaches.`,
+        layout: 'comparison',
+      },
+      {
+        title: 'Experimental & Execution Workflow',
+        summary: `Step-by-step breakdown of empirical testing, data collection, and analytical validation.`,
+        layout: 'process',
+      },
+      {
+        title: 'Key Quantitative Findings & Statistical Evidence',
+        summary: `Highlighting primary data points, efficacy rates, and measured performance metrics.`,
+        layout: 'statistics',
+      },
+      {
+        title: 'Empirical Growth & Longitudinal Trends',
+        summary: `Visualizing adoption metrics, multi-year observations, and trajectory data.`,
+        layout: 'chart',
+      },
+      {
+        title: 'Real-World Case Study & Field Validation',
+        summary: `Demonstrating practical application, operational deployment, and verified outcomes.`,
+        layout: 'text-image',
+      },
+      {
+        title: 'Strategic Synthesis & Future Research Horizons',
+        summary: `Synthesizing final conclusions, policy implications, and next-phase developments.`,
+        layout: 'conclusion',
+      },
+    ];
+  } else if (domain === 'startup_pitch') {
+    domainTemplates = [
+      {
+        title: `${cleanTopic}: Investor Deck`,
+        summary: `Presenting the strategic vision, market momentum, and core business opportunity for ${audience}.`,
+        layout: 'title',
+      },
+      {
+        title: 'The Critical Market Pain Point',
+        summary: `Quantifying current market friction, customer inefficiencies, and economic loss.`,
+        layout: 'problem',
+      },
+      {
+        title: 'Our Proprietary Solution & Platform',
+        summary: `Unveiling our unique value proposition, technology moat, and product architecture.`,
+        layout: 'solution',
+      },
+      {
+        title: 'Legacy Alternatives vs. Our Innovation',
+        summary: `Direct contrast showcasing our speed, cost advantage, and operational superiority.`,
+        layout: 'comparison',
+      },
+      {
+        title: 'Go-To-Market & Scalability Roadmap',
+        summary: `Phased execution model from customer acquisition to enterprise expansion.`,
+        layout: 'process',
+      },
+      {
+        title: 'Traction Metrics & Financial Highlights',
+        summary: `Demonstrating unit economics, ARR growth, retention rates, and margin profiles.`,
+        layout: 'statistics',
+      },
+      {
+        title: 'Market Size & Revenue Projection',
+        summary: `Visualizing TAM/SAM/SOM expansion and multi-year financial forecasts.`,
+        layout: 'chart',
+      },
+      {
+        title: 'Product Demonstration & User Experience',
+        summary: `Showcasing core product workflows, feature highlights, and customer feedback.`,
+        layout: 'text-image',
+      },
+      {
+        title: 'Funding Requirements & Executive Call to Action',
+        summary: `Outlining capital allocation, key milestones, and strategic return potential.`,
+        layout: 'conclusion',
+      },
+    ];
+  } else if (domain === 'history') {
+    domainTemplates = [
+      {
+        title: `Chronicles of ${cleanTopic}`,
+        summary: `Setting historical context, key figures, and overarching significance for ${audience}.`,
+        layout: 'title',
+      },
+      {
+        title: 'Historical Catalysts & Initial Challenges',
+        summary: `Exploring the socio-political, economic, and technological circumstances at the outset.`,
+        layout: 'problem',
+      },
+      {
+        title: 'Pioneering Breakthroughs & Founding Vision',
+        summary: `Detailing early achievements, institutional leadership, and strategic resolve.`,
+        layout: 'solution',
+      },
+      {
+        title: 'Early Era vs. Modern Milestone Contrast',
+        summary: `Comparing original constraints against current capabilities and global recognition.`,
+        layout: 'comparison',
+      },
+      {
+        title: 'Chronological Timeline of Key Events',
+        summary: `Sequential progression of major missions, policy decisions, and pivotal moments.`,
+        layout: 'process',
+      },
+      {
+        title: 'Quantitative Impact & Historic Milestones',
+        summary: `Highlighting key metrics, success rates, resource allocations, and records.`,
+        layout: 'statistics',
+      },
+      {
+        title: 'Growth Trajectory & Mission Expansion',
+        summary: `Visualizing multi-decade progress, launch counts, and infrastructure scaling.`,
+        layout: 'chart',
+      },
+      {
+        title: 'Iconic Moment & Historic Case Profile',
+        summary: `Examining a defining historical event, breakthrough mission, or seminal publication.`,
+        layout: 'text-image',
+      },
+      {
+        title: 'Lasting Legacy & Future Horizons',
+        summary: `Synthesizing historic significance, enduring lessons, and future global influence.`,
+        layout: 'conclusion',
+      },
+    ];
+  } else if (domain === 'technology') {
+    domainTemplates = [
+      {
+        title: `Architecture & Future of ${cleanTopic}`,
+        summary: `Exploring foundational tech stack, industry relevance, and strategic impact for ${audience}.`,
+        layout: 'title',
+      },
+      {
+        title: 'Technical Bottlenecks & Legacy Limitations',
+        summary: `Identifying architectural friction, security risks, and throughput constraints.`,
+        layout: 'problem',
+      },
+      {
+        title: 'Core Technical Framework & Innovation',
+        summary: `Unpacking protocol mechanics, system design, and algorithmic efficiency.`,
+        layout: 'solution',
+      },
+      {
+        title: 'Legacy Infrastructure vs. Next-Gen Stack',
+        summary: `Comparative breakdown of latency, scalability, security, and operational cost.`,
+        layout: 'comparison',
+      },
+      {
+        title: 'End-to-End Execution Flow',
+        summary: `Step-by-step lifecycle from initial data input to finalized ledger/output verification.`,
+        layout: 'process',
+      },
+      {
+        title: 'Performance Benchmarks & Key Metrics',
+        summary: `Measuring throughput, latency reductions, energy efficiency, and uptime gains.`,
+        layout: 'statistics',
+      },
+      {
+        title: 'Ecosystem Growth & Adoption Velocity',
+        summary: `Visualizing developer/user trajectory, transaction volume, and network expansion.`,
+        layout: 'chart',
+      },
+      {
+        title: 'Enterprise Architecture & Deployment',
+        summary: `Examining real-world production setups, integration vectors, and security controls.`,
+        layout: 'text-image',
+      },
+      {
+        title: 'Technical Summary & Strategic Roadmap',
+        summary: `Outlining future protocol upgrades, governance models, and long-term targets.`,
+        layout: 'conclusion',
+      },
+    ];
+  } else {
+    domainTemplates = [
+      {
+        title: `Strategic Insights: ${cleanTopic}`,
+        summary: `Providing executive framing, macro trends, and key imperatives for ${audience}.`,
+        layout: 'title',
+      },
+      {
+        title: 'Industry Friction Points & Key Challenges',
+        summary: `Analyzing structural vulnerabilities, operational overhead, and growth bottlenecks.`,
+        layout: 'problem',
+      },
+      {
+        title: 'Strategic Framework & Comprehensive Solution',
+        summary: `Presenting our structured approach, core capabilities, and strategic model.`,
+        layout: 'solution',
+      },
+      {
+        title: 'Status Quo vs. Strategic Target State',
+        summary: `Side-by-side evaluation of traditional operating models versus optimized execution.`,
+        layout: 'comparison',
+      },
+      {
+        title: 'Phased Implementation & Rollout Roadmap',
+        summary: `Structured execution plan across research, deployment, optimization, and scale.`,
+        layout: 'process',
+      },
+      {
+        title: 'Quantitative Impact & Performance Indicators',
+        summary: `Tracking measurable ROI, efficiency gains, and performance milestones.`,
+        layout: 'statistics',
+      },
+      {
+        title: 'Market Growth & Performance Trajectory',
+        summary: `Visualizing multi-year adoption, demand forecasts, and key metric trends.`,
+        layout: 'chart',
+      },
+      {
+        title: 'Real-World Case Study & Operational Impact',
+        summary: `Highlighting verified success stories, partner deployment, and tangible outcomes.`,
+        layout: 'text-image',
+      },
+      {
+        title: 'Executive Summary & Strategic Action Plan',
+        summary: `Consolidating final recommendations, resource alignment, and immediate next steps.`,
+        layout: 'conclusion',
+      },
+    ];
+  }
 
   const items: StoryOutlineItem[] = [];
   for (let i = 0; i < slideCount; i++) {
-    const template = baseItems[i % baseItems.length];
+    const template = domainTemplates[i % domainTemplates.length];
     items.push({
       id: `outline-${i + 1}`,
       slideNumber: i + 1,
@@ -198,7 +416,7 @@ export function generateFallbackOutline(
   return items;
 }
 
-// Generate Fallback Presentation with Rich Multi-Layout Compositions
+// Generate Fallback Presentation with Rich Multi-Layout Compositions (100% Topic-Driven)
 export function generateFallbackPresentation(
   topic: string,
   audience: AudienceType = 'professional',
@@ -209,6 +427,9 @@ export function generateFallbackPresentation(
   customOutline?: StoryOutlineItem[]
 ): Presentation {
   const id = `deck-${Date.now()}`;
+  const domain = classifyTopicDomain(topic);
+  const cleanTopic = topic.trim();
+
   const outlineItems =
     customOutline && customOutline.length > 0
       ? customOutline
@@ -224,28 +445,70 @@ export function generateFallbackPresentation(
     const isStats = layout === 'statistics';
     const isChart = layout === 'chart';
     const isTextImage = layout === 'text-image';
-    const isConclusion = layout === 'conclusion';
 
     const imageUrl = (isTitle || isTextImage || isSolution)
-      ? getCuratedAssetUrl(topic, idx)
+      ? getCuratedAssetUrl(cleanTopic, idx)
       : undefined;
 
     const chartData: ChartDataConfig | undefined = isChart
       ? {
           chartType: 'bar',
-          labels: ['Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025', 'Q1 2026 Target'],
-          series: [24, 45, 68, 89, 140],
+          labels: ['Baseline 2022', '2023', '2024', '2025', '2026 Projection'],
+          series: [32, 58, 84, 115, 160],
         }
       : undefined;
 
-    const processSteps: ProcessStepItem[] | undefined = isProcess
-      ? [
-          { stepNumber: 1, label: '01 Brain Dump', description: 'Paste raw thoughts & bullet outlines' },
-          { stepNumber: 2, label: '02 AI Synthesis', description: 'Engine classifies narrative arc' },
-          { stepNumber: 3, label: '03 Design Engine', description: 'Applies editorial layout & colors' },
-          { stepNumber: 4, label: '04 Present & Export', description: 'Native PPTX & PDF widescreen' },
-        ]
-      : undefined;
+    let processSteps: ProcessStepItem[] | undefined = undefined;
+    if (isProcess) {
+      if (domain === 'technology') {
+        processSteps = [
+          { stepNumber: 1, label: '01 Data Input', description: 'Raw payload ingested & validated' },
+          { stepNumber: 2, label: '02 Architecture', description: 'Core protocol & consensus validation' },
+          { stepNumber: 3, label: '03 Processing Engine', description: 'High-throughput computational execution' },
+          { stepNumber: 4, label: '04 Final State', description: 'Verified immutable ledger output' },
+        ];
+      } else if (domain === 'history') {
+        processSteps = [
+          { stepNumber: 1, label: '01 Foundation Era', description: 'Initial vision & early leadership' },
+          { stepNumber: 2, label: '02 First Breakthrough', description: 'Seminal launch & milestone achievement' },
+          { stepNumber: 3, label: '03 Institutional Growth', description: 'Expansion of facilities & global partnerships' },
+          { stepNumber: 4, label: '04 Modern Horizon', description: 'Deep space & advanced operational era' },
+        ];
+      } else {
+        processSteps = [
+          { stepNumber: 1, label: '01 Analysis', description: 'Context mapping & requirements gathering' },
+          { stepNumber: 2, label: '02 Strategic Design', description: 'Architecture & framework formulation' },
+          { stepNumber: 3, label: '03 Phased Rollout', description: 'Systematic deployment & field execution' },
+          { stepNumber: 4, label: '04 Evaluation', description: 'Continuous optimization & scaling' },
+        ];
+      }
+    }
+
+    let comparison = undefined;
+    if (isComparison) {
+      if (domain === 'technology') {
+        comparison = {
+          leftTitle: `Legacy Infrastructure for ${cleanTopic.slice(0, 20)}`,
+          leftItems: ['High processing latency & cost', 'Fragmented data silos & security risk', 'Limited throughput & scaling bottlenecks'],
+          rightTitle: `Modern Next-Gen Architecture`,
+          rightItems: ['High-throughput parallel processing', 'End-to-end cryptographic verification', 'Elastic scalability & lower operational cost'],
+        };
+      } else if (domain === 'academic') {
+        comparison = {
+          leftTitle: `Traditional Baseline Approach`,
+          leftItems: ['Static observational datasets', 'Manual heuristic analysis', 'Narrow regional sample size'],
+          rightTitle: `Empirical AI-Driven Framework`,
+          rightItems: ['Real-time multi-dimensional telemetry', 'Predictive machine learning models', 'Global cross-validated dataset'],
+        };
+      } else {
+        comparison = {
+          leftTitle: `Traditional Operating Model`,
+          leftItems: ['Manual coordination overhead', 'Inconsistent quality metrics', 'Slower execution timelines'],
+          rightTitle: `Optimized Strategic Framework`,
+          rightItems: ['Automated workflow intelligence', 'Unified quality benchmarks', 'Accelerated turnaround & high ROI'],
+        };
+      }
+    }
 
     return {
       id: `slide-${idx + 1}`,
@@ -254,44 +517,37 @@ export function generateFallbackPresentation(
       subtitle: item.summary,
       layout,
       content: [
-        `Strategic takeaway regarding ${topic.slice(0, 25)}...`,
-        `Audience alignment tailored specifically for ${audience}`,
-        `Actionable insight supporting the overall ${purpose} objective`,
+        `Key takeaway regarding ${cleanTopic.slice(0, 30)}...`,
+        `Targeted insights aligned specifically for ${audience}`,
+        `Actionable perspective supporting the overall ${purpose} narrative`,
       ],
-      speakerNotes: `Emphasize key points on slide ${idx + 1} clearly for the target audience.`,
+      speakerNotes: `Emphasize key points on slide ${idx + 1} regarding ${cleanTopic} for the target audience.`,
       keyMetric: (isStats || isChart || isProblem)
         ? {
-            label: 'EFFICIENCY GAIN',
-            value: '+340%',
-            trend: '↑ 4.2x Faster Turnaround',
+            label: 'MEASURED IMPACT',
+            value: '+280%',
+            trend: '↑ 3.8x Accelerated Trajectory',
           }
         : undefined,
-      comparison: isComparison
-        ? {
-            leftTitle: 'Traditional Manual Process',
-            leftItems: ['Hours of pixel alignment', 'Inconsistent layout hierarchy', 'Fragmented story flow'],
-            rightTitle: 'Present.AI Story Engine',
-            rightItems: ['Instant structured narrative', 'Gallery-quality editorial design', 'Automated widescreen export'],
-          }
-        : undefined,
+      comparison,
       chartData,
       processSteps,
       imageUrl,
       visualSuggestion: {
         type: isChart ? 'chart' : isProcess ? 'diagram' : isTextImage ? 'image' : 'icon',
-        description: `Visual element for slide ${idx + 1}`,
+        description: `Visual representation for ${cleanTopic} - Slide ${idx + 1}`,
         iconName: 'Sparkles',
       },
     };
   });
 
-  const qualityScore = calculateQualityScore(slides, topic, purpose);
+  const qualityScore = calculateQualityScore(slides, cleanTopic, purpose);
 
   return {
     id,
-    title: topic,
-    subtitle: `Present.AI Presentation Design Engine for ${audience}`,
-    topic,
+    title: cleanTopic,
+    subtitle: `Executive Briefing for ${audience}`,
+    topic: cleanTopic,
     audience,
     purpose,
     tone,
@@ -519,9 +775,11 @@ ${outlineContext}
 
 CRITICAL RULES:
 1. Respect target language (${targetLanguage}).
-2. Incorporate real research facts and statistics.
-3. Provide slide-level citations where factual claims are made.
-4. The FINAL SLIDE MUST be a "SOURCES / REFERENCES" slide (layout: "summary") listing main research citations.
+2. ALL slide titles, subtitles, bullets, metrics, comparison columns, and process steps MUST BE 100% SPECIFIC TO THE TOPIC "${actualTopic}".
+3. NEVER output generic website text, AI presentation tool marketing copy (such as "Present.AI", "Brain Dump", "Manual slide friction"), or placeholder template strings.
+4. Incorporate real research facts and statistics relevant to "${actualTopic}".
+5. Provide slide-level citations where factual claims are made.
+6. The FINAL SLIDE MUST be a "SOURCES / REFERENCES" slide (layout: "summary") listing main research citations.
 
 Your response MUST be strict raw JSON without markdown formatting.
 Schema:
@@ -639,30 +897,31 @@ export function validatePresentationQuality(deck: Presentation): Presentation {
     }
     if (!slide.layout) slide.layout = 'solution';
 
-    // Auto-repair missing layout-specific data
+    // Auto-repair missing layout-specific data (100% Topic-Driven)
     if (slide.layout === 'comparison' && !slide.comparison) {
+      const topicContext = deck.topic || 'Target Domain';
       slide.comparison = {
-        leftTitle: 'Legacy Approach',
-        leftItems: ['Manual layout friction', 'Unstructured narrative'],
-        rightTitle: 'Present.AI Engine',
-        rightItems: ['Automated layout intelligence', 'Widescreen PPTX export'],
+        leftTitle: `Traditional Approach to ${topicContext.slice(0, 20)}`,
+        leftItems: ['Baseline operational friction', 'Fragmented data & process silos', 'Scaling constraints'],
+        rightTitle: `Modern Strategic Architecture`,
+        rightItems: ['High-throughput execution framework', 'Integrated data & workflow telemetry', 'Scalable performance benchmarks'],
       };
     }
 
     if (slide.layout === 'process' && (!slide.processSteps || slide.processSteps.length === 0)) {
       slide.processSteps = [
-        { stepNumber: 1, label: '01 Discovery', description: 'Parameter mapping' },
-        { stepNumber: 2, label: '02 Architecture', description: 'Narrative planning' },
-        { stepNumber: 3, label: '03 Styling', description: 'Editorial design system' },
-        { stepNumber: 4, label: '04 Export', description: 'Native PPTX & PDF' },
+        { stepNumber: 1, label: '01 Requirements', description: 'Context & baseline data mapping' },
+        { stepNumber: 2, label: '02 Architecture', description: 'Systematic framework formulation' },
+        { stepNumber: 3, label: '03 Execution', description: 'Phased rollout & field deployment' },
+        { stepNumber: 4, label: '04 Scaling', description: 'Continuous optimization & expansion' },
       ];
     }
 
     if (slide.layout === 'chart' && !slide.chartData) {
       slide.chartData = {
         chartType: 'bar',
-        labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Target'],
-        series: [25, 48, 72, 95, 140],
+        labels: ['Baseline 2022', '2023', '2024', '2025', '2026 Target'],
+        series: [30, 55, 82, 110, 155],
       };
     }
 
