@@ -18,6 +18,7 @@ import {
   Presentation,
   History,
   Settings,
+  ShieldCheck,
 } from 'lucide-react';
 import { Presentation as PresentationType, Slide, SlideLayoutType, ThemeType } from '@/lib/types';
 import { THEMES } from '@/lib/themes';
@@ -28,6 +29,7 @@ import SlideThumbnail from '@/components/editor/SlideThumbnail';
 import PresentationCanvas from '@/components/editor/PresentationCanvas';
 import AICommandBar from '@/components/editor/AICommandBar';
 import DesignPanel from '@/components/editor/DesignPanel';
+import SourcesPanel from '@/components/editor/SourcesPanel';
 import ExportModal from '@/components/editor/ExportModal';
 import PracticeCoachModal from '@/components/editor/PracticeCoachModal';
 
@@ -41,6 +43,7 @@ export default function EditorPage() {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isPracticeOpen, setIsPracticeOpen] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [activeRightPanel, setActiveRightPanel] = useState<'design' | 'sources'>('design');
 
   useEffect(() => {
     let deck = getPresentationById(id);
@@ -100,25 +103,21 @@ export default function EditorPage() {
     const newSlide: Slide = {
       id: `slide-${Date.now()}`,
       slideNumber: newSlideNumber,
-      title: `Slide Title ${newSlideNumber}`,
-      subtitle: 'Add subtitle context here',
+      title: `New Slide 0${newSlideNumber}`,
+      subtitle: 'Add subtitle here',
       layout: 'solution',
-      content: ['New slide key point 1', 'New slide key point 2', 'New slide key point 3'],
-      visualSuggestion: {
-        type: 'diagram',
-        description: 'New slide diagram',
-        iconName: 'Sparkles',
-      },
+      content: ['Actionable key point 1', 'Strategic takeaway 2'],
+      speakerNotes: 'Notes for presentation flow.',
     };
-    const updatedSlides = [...presentation.slides, newSlide];
+
     const updatedDeck = {
       ...presentation,
-      slides: updatedSlides,
-      slideCount: updatedSlides.length,
+      slideCount: presentation.slides.length + 1,
+      slides: [...presentation.slides, newSlide],
     };
     setPresentation(updatedDeck);
     savePresentation(updatedDeck);
-    setActiveSlideIndex(updatedSlides.length - 1);
+    setActiveSlideIndex(presentation.slides.length);
   };
 
   const handleDuplicateSlide = (index: number) => {
@@ -126,15 +125,22 @@ export default function EditorPage() {
     const duplicated: Slide = {
       ...target,
       id: `slide-${Date.now()}`,
-      slideNumber: presentation.slides.length + 1,
+      slideNumber: index + 2,
       title: `${target.title} (Copy)`,
     };
+
     const updatedSlides = [...presentation.slides];
     updatedSlides.splice(index + 1, 0, duplicated);
+
+    const renumbered = updatedSlides.map((s, idx) => ({
+      ...s,
+      slideNumber: idx + 1,
+    }));
+
     const updatedDeck = {
       ...presentation,
-      slides: updatedSlides,
-      slideCount: updatedSlides.length,
+      slideCount: renumbered.length,
+      slides: renumbered,
     };
     setPresentation(updatedDeck);
     savePresentation(updatedDeck);
@@ -143,38 +149,44 @@ export default function EditorPage() {
 
   const handleDeleteSlide = (index: number) => {
     if (presentation.slides.length <= 1) return;
-    const updatedSlides = presentation.slides.filter((_, i) => i !== index);
-    const reindexed = updatedSlides.map((s, i) => ({ ...s, slideNumber: i + 1 }));
+
+    const filtered = presentation.slides.filter((_, idx) => idx !== index);
+    const renumbered = filtered.map((s, idx) => ({
+      ...s,
+      slideNumber: idx + 1,
+    }));
+
     const updatedDeck = {
       ...presentation,
-      slides: reindexed,
-      slideCount: reindexed.length,
+      slideCount: renumbered.length,
+      slides: renumbered,
     };
     setPresentation(updatedDeck);
     savePresentation(updatedDeck);
-    setActiveSlideIndex(Math.max(0, index - 1));
+
+    if (activeSlideIndex >= renumbered.length) {
+      setActiveSlideIndex(renumbered.length - 1);
+    }
   };
 
   return (
-    <div className="h-screen w-screen bg-[#F4F4F0] text-[#111111] flex flex-col overflow-hidden select-none">
-      {/* Stitch Image 4 Top Navbar Header */}
-      <header className="h-16 bg-white border-b border-[#E4E1DA] px-4 sm:px-6 flex items-center justify-between shrink-0 z-40 shadow-subtle">
+    <div className="min-h-screen bg-[#F4F4F0] text-[#111111] font-sans flex flex-col h-screen overflow-hidden select-none">
+      {/* Studio Top Control Navigation Bar */}
+      <header className="h-14 bg-white border-b border-[#E4E1DA] px-4 flex items-center justify-between shrink-0 z-30 shadow-subtle">
         <div className="flex items-center gap-4">
           <Link
-            href="/presentations"
-            className="p-2 rounded-xl text-[#666664] hover:text-[#111111] hover:bg-[#F0EEE8] transition-colors"
+            href="/"
+            className="flex items-center gap-2 font-serif font-extrabold text-base tracking-tight hover:opacity-80 transition-opacity"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-xl bg-[#111111] text-white flex items-center justify-center font-bold text-xs shadow-card">
+              P
+            </div>
+            <span>Present.AI</span>
           </Link>
 
-          <Link href="/" className="font-serif text-lg font-bold text-[#111111]">
-            Present<span className="font-sans font-normal text-xs text-[#666664]">.AI</span>
-          </Link>
+          <div className="h-4 w-px bg-[#E4E1DA]" />
 
-          <div className="h-4 w-[1px] bg-[#E4E1DA]" />
-
-          {/* Undo/Redo & Document Title */}
-          <div className="flex items-center gap-2 font-mono text-xs">
+          <div className="flex items-center gap-2 text-xs">
             <button className="p-1 rounded text-[#666664] hover:text-[#111111]">
               <Undo className="w-3.5 h-3.5" />
             </button>
@@ -195,7 +207,19 @@ export default function EditorPage() {
         </div>
 
         {/* Right Header Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setActiveRightPanel(activeRightPanel === 'sources' ? 'design' : 'sources')}
+            className={`inline-flex items-center gap-1.5 text-xs font-sans font-bold px-3.5 py-2 rounded-xl border transition-all ${
+              activeRightPanel === 'sources'
+                ? 'bg-[#2D7A58] text-white border-[#2D7A58]'
+                : 'bg-[#F4F4F0] border-[#E4E1DA] text-[#111111] hover:border-[#2D7A58]'
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Research Sources</span>
+          </button>
+
           <button
             onClick={() => setIsPracticeOpen(true)}
             className="inline-flex items-center gap-1.5 bg-[#F4F4F0] border border-[#E4E1DA] hover:border-[#111111] text-[#111111] font-sans text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-subtle"
@@ -234,7 +258,7 @@ export default function EditorPage() {
         </div>
       </header>
 
-      {/* 4-Column Studio Layout (Stitch Image 4) */}
+      {/* 4-Column Studio Layout */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Tools Navigation Bar */}
         {!isPreviewMode && (
@@ -286,12 +310,19 @@ export default function EditorPage() {
 
         {/* Right Inspector Panel */}
         {!isPreviewMode && (
-          <DesignPanel
-            activeSlide={activeSlide}
-            activeTheme={presentation.theme}
-            onChangeTheme={handleChangeTheme}
-            onChangeLayout={handleChangeLayout}
-          />
+          activeRightPanel === 'sources' ? (
+            <SourcesPanel
+              presentation={presentation}
+              onUpdatePresentation={setPresentation}
+            />
+          ) : (
+            <DesignPanel
+              activeSlide={activeSlide}
+              activeTheme={presentation.theme}
+              onChangeTheme={handleChangeTheme}
+              onChangeLayout={handleChangeLayout}
+            />
+          )
         )}
       </div>
 

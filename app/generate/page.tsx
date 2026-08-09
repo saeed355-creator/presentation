@@ -59,12 +59,13 @@ function GenerateFormContent() {
   const searchParams = useSearchParams();
 
   // Config State
-  const [topic, setTopic] = useState('e.g. Q3 Financial Review focusing on enterprise growth in APAC region...');
+  const [topic, setTopic] = useState('e.g. Future of Electric Vehicles in India...');
   const [audience, setAudience] = useState<AudienceType>('professional');
   const [purpose, setPurpose] = useState<PurposeType>('meeting');
   const [tone, setTone] = useState<ToneType>('professional');
   const [slideCount, setSlideCount] = useState<number>(10);
   const [theme, setTheme] = useState<ThemeType>('dark-violet');
+  const [researchMode, setResearchMode] = useState<'quick' | 'standard' | 'deep'>('standard');
 
   // Step 1: Config, Step 2: Outline Review, Step 3: Full Deck Generating
   const [step, setStep] = useState<'config' | 'outline' | 'generating'>('config');
@@ -330,6 +331,40 @@ function GenerateFormContent() {
                 </div>
               </div>
 
+              {/* RESEARCH GROUNDING MODE */}
+              <div className="pt-4 border-t border-[#F0EEE8] space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-mono font-bold text-[#666664] uppercase flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#2D7A58]" />
+                    REAL-TIME WEB RESEARCH MODE
+                  </label>
+                  <span className="text-[10px] font-mono text-[#2D7A58] font-bold uppercase">
+                    GOOGLE SEARCH GROUNDED
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { id: 'quick', title: 'QUICK', desc: 'Fast web grounding' },
+                    { id: 'standard', title: 'STANDARD', desc: 'Balanced research & citations' },
+                    { id: 'deep', title: 'DEEP RESEARCH', desc: 'Exhaustive cross-checking' },
+                  ].map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setResearchMode(m.id as any)}
+                      className={`p-3 rounded-2xl border text-left transition-all ${
+                        researchMode === m.id
+                          ? 'bg-[#F0F5F2] border-[#2D7A58] text-[#111111] shadow-subtle'
+                          : 'bg-[#F4F4F0] border-[#E4E1DA] text-[#666664] hover:text-[#111111]'
+                      }`}
+                    >
+                      <div className="font-mono text-xs font-bold text-[#111111]">{m.title}</div>
+                      <div className="text-[10px] font-light text-[#666664] mt-0.5">{m.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Main Action Button */}
               <div className="pt-6 border-t border-[#F0EEE8] text-center space-y-2">
                 <button
@@ -342,10 +377,10 @@ function GenerateFormContent() {
                   ) : (
                     <Sparkles className="w-4 h-4 text-white" />
                   )}
-                  <span>GENERATE PRESENTATION</span>
+                  <span>RESEARCH & GENERATE PRESENTATION</span>
                 </button>
                 <div className="text-[10px] font-mono text-[#666664]">
-                  ⏱ Consumes 1 generation credit
+                  ⏱ Real-time web research + 16:9 presentation generation
                 </div>
               </div>
             </form>

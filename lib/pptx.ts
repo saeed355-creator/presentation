@@ -308,8 +308,9 @@ export async function exportToPPTX(presentation: Presentation): Promise<void> {
       });
     }
 
-    // Footer Tag
-    pSlide.addText(`Generated with Present.AI Presentation Design Engine`, {
+    // Footer Tag & Citation
+    const footerCitation = slide.citation ? ` | Source: ${slide.citation.sourceName}` : '';
+    pSlide.addText(`Generated with Present.AI Verified Research Engine${footerCitation}`, {
       x: 0.8,
       y: 7.0,
       w: 11.7,

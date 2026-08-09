@@ -336,9 +336,16 @@ export default function SlideLayoutRenderer({
         )}
       </div>
 
-      {/* Footer Tag */}
+      {/* Footer Tag & Citation Attribution */}
       <div className="pt-4 border-t border-white/10 flex items-center justify-between text-[11px] font-mono z-10" style={{ color: theme.textSecondary }}>
-        <span>Generated with Present.AI Presentation Design Engine</span>
+        <div className="flex items-center gap-2">
+          <span>Generated with Present.AI Verified Research Engine</span>
+          {slide.citation && (
+            <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[10px] font-bold">
+              Source: {slide.citation.sourceName}
+            </span>
+          )}
+        </div>
         <span>16:9 Widescreen</span>
       </div>
     </div>

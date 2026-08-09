@@ -14,6 +14,7 @@ export async function POST(req: Request) {
       theme = 'dark-violet',
       mode = 'full',
       outline = null,
+      researchMode = 'standard',
     } = body;
 
     if (!topic || typeof topic !== 'string') {
@@ -40,7 +41,8 @@ export async function POST(req: Request) {
       Number(slideCount) || 8,
       tone as ToneType,
       theme as ThemeType,
-      outline
+      outline,
+      researchMode
     );
 
     return NextResponse.json({ success: true, presentation });

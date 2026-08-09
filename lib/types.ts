@@ -96,6 +96,39 @@ export interface ComparisonData {
   rightItems: string[];
 }
 
+export type ResearchMode = 'quick' | 'standard' | 'deep';
+
+export type ClaimVerificationStatus = 'VERIFIED' | 'SUPPORTED' | 'UNCERTAIN' | 'CONFLICTING';
+
+export interface ResearchSource {
+  id: string;
+  sourceName: string;
+  title: string;
+  url: string;
+  date?: string;
+  snippet?: string;
+  usedInSlides: number[];
+  verificationStatus?: ClaimVerificationStatus;
+}
+
+export interface ResearchSummaryData {
+  topic: string;
+  researchMode: ResearchMode;
+  queryList: string[];
+  keyFacts: string[];
+  statistics: { label: string; value: string; sourceId?: string }[];
+  sources: ResearchSource[];
+  timestamp: string;
+}
+
+export interface SlideCitation {
+  sourceName: string;
+  title?: string;
+  url?: string;
+  date?: string;
+  verificationStatus?: ClaimVerificationStatus;
+}
+
 export interface Slide {
   id: string;
   slideNumber: number;
@@ -111,6 +144,7 @@ export interface Slide {
   imageUrl?: string;
   quoteAuthor?: string;
   visualSuggestion?: SlideVisualSuggestion;
+  citation?: SlideCitation;
 }
 
 export interface StoryOutlineItem {
@@ -146,6 +180,9 @@ export interface Presentation {
   slides: Slide[];
   outline?: StoryOutlineItem[];
   qualityScore?: QualityScore;
+  researchMode?: ResearchMode;
+  researchData?: ResearchSummaryData;
+  sources?: ResearchSource[];
 }
 
 export interface ThemeConfig {
