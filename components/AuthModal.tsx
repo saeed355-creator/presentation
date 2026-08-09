@@ -141,7 +141,7 @@ export default function AuthModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="w-full max-w-md bg-white border border-[#E4E1DA] rounded-3xl p-8 sm:p-10 shadow-2xl relative my-auto"
+          className="w-full max-w-md bg-white border border-[#E4E1DA] rounded-3xl p-6 sm:p-10 shadow-2xl relative my-auto max-h-[90vh] overflow-y-auto"
         >
           {/* Close Button */}
           <button

@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Sparkles, LogOut, Presentation, Settings, Plus, LayoutGrid } from 'lucide-react';
+import { Sparkles, LogOut, Presentation, Settings, Plus, LayoutGrid, Menu, X } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, session, requireAuth, openAuthModal, logout } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -31,6 +32,18 @@ export default function Navbar() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
 
   return (
     <nav
@@ -57,7 +70,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Navigation Links */}
+        {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center gap-8 text-xs font-semibold text-[#111111] tracking-wide font-sans">
           <Link href="/generate" className="hover:text-[#FF6B35] transition-colors py-1">
             Dashboard
@@ -74,14 +87,15 @@ export default function Navbar() {
         </div>
 
         {/* Actions & User Avatar */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Main Action Button - NEW PRESENTATION (Stitch Pill Button) */}
           <button
             onClick={() => requireAuth()}
-            className="inline-flex items-center gap-1.5 bg-[#111111] hover:bg-[#2A2A2A] text-white font-sans text-xs font-extrabold uppercase tracking-wider px-4 py-2.5 rounded-full transition-all shadow-subtle active:scale-[0.98]"
+            className="inline-flex items-center gap-1.5 bg-[#111111] hover:bg-[#2A2A2A] text-white font-sans text-xs font-extrabold uppercase tracking-wider px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full transition-all shadow-subtle active:scale-[0.98]"
           >
             <Plus className="w-3.5 h-3.5 text-white stroke-[3]" />
-            <span>NEW PRESENTATION</span>
+            <span className="hidden sm:inline">NEW PRESENTATION</span>
+            <span className="sm:hidden">CREATE</span>
           </button>
 
           {/* User Account Circular Avatar */}
@@ -90,7 +104,7 @@ export default function Navbar() {
               <button
                 onClick={() => setShowUserDropdown(!showUserDropdown)}
                 title="Account Menu"
-                className="relative group p-0.5 rounded-full hover:ring-2 hover:ring-[#111111]/30 transition-all focus:outline-none"
+                className="relative group p-0.5 rounded-full hover:ring-2 hover:ring-[#111111]/30 transition-all focus:outline-none min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
                 <div className="w-9 h-9 rounded-full bg-white/90 border-2 border-[#111111] flex items-center justify-center overflow-hidden shadow-subtle group-hover:scale-105 transition-transform">
                   <svg viewBox="0 0 100 100" className="w-full h-full text-[#111111]" fill="currentColor">
@@ -121,7 +135,7 @@ export default function Navbar() {
                   <Link
                     href="/generate"
                     onClick={() => setShowUserDropdown(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-[#F0EEE8] text-[#111111] font-medium transition-colors"
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-[#F0EEE8] text-[#111111] font-medium transition-colors min-h-[44px]"
                   >
                     <Plus className="w-4 h-4 text-[#111111]" />
                     <span>Create Presentation</span>
@@ -130,7 +144,7 @@ export default function Navbar() {
                   <Link
                     href="/presentations"
                     onClick={() => setShowUserDropdown(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-[#F0EEE8] text-[#111111] font-medium transition-colors"
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-[#F0EEE8] text-[#111111] font-medium transition-colors min-h-[44px]"
                   >
                     <Presentation className="w-4 h-4 text-[#666664]" />
                     <span>My Presentations</span>
@@ -139,7 +153,7 @@ export default function Navbar() {
                   <Link
                     href="/templates"
                     onClick={() => setShowUserDropdown(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-[#F0EEE8] text-[#111111] font-medium transition-colors"
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-[#F0EEE8] text-[#111111] font-medium transition-colors min-h-[44px]"
                   >
                     <LayoutGrid className="w-4 h-4 text-[#666664]" />
                     <span>Templates Gallery</span>
@@ -148,7 +162,7 @@ export default function Navbar() {
                   <Link
                     href="/settings"
                     onClick={() => setShowUserDropdown(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-[#F0EEE8] text-[#111111] font-medium transition-colors"
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-[#F0EEE8] text-[#111111] font-medium transition-colors min-h-[44px]"
                   >
                     <Settings className="w-4 h-4 text-[#666664]" />
                     <span>Account Settings</span>
@@ -160,7 +174,7 @@ export default function Navbar() {
                         setShowUserDropdown(false);
                         logout();
                       }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-red-600 hover:bg-red-50 transition-colors font-semibold"
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-red-600 hover:bg-red-50 transition-colors font-semibold min-h-[44px]"
                     >
                       <LogOut className="w-4 h-4 text-red-500" />
                       <span>Log Out</span>
@@ -172,13 +186,96 @@ export default function Navbar() {
           ) : (
             <button
               onClick={() => openAuthModal('signin')}
-              className="text-xs font-bold text-[#111111] hover:text-[#FF6B35] px-2 py-1 transition-colors uppercase font-mono"
+              className="text-xs font-bold text-[#111111] hover:text-[#FF6B35] px-2.5 py-2 transition-colors uppercase font-mono min-h-[44px] flex items-center"
             >
               Sign In
             </button>
           )}
+
+          {/* Mobile Menu Hamburger Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 text-[#111111] hover:text-[#FF6B35] rounded-xl border border-[#E4E1DA] bg-white shadow-subtle focus:outline-none min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Toggle navigation menu"
+          >
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Drawer Navigation Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 top-[72px] bg-[#F4F4F0]/95 backdrop-blur-2xl z-50 p-6 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-top-4 duration-200">
+          <div className="space-y-6">
+            <div className="text-xs font-mono font-bold text-[#666664] uppercase tracking-wider">NAVIGATION</div>
+            <div className="flex flex-col space-y-3 font-serif text-2xl font-bold text-[#111111]">
+              <Link
+                href="/generate"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="hover:text-[#FF6B35] transition-colors py-2 border-b border-[#E4E1DA]/60 min-h-[44px] flex items-center"
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/templates"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="hover:text-[#FF6B35] transition-colors py-2 border-b border-[#E4E1DA]/60 min-h-[44px] flex items-center"
+              >
+                Templates
+              </Link>
+              <Link
+                href="/presentations"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="hover:text-[#FF6B35] transition-colors py-2 border-b border-[#E4E1DA]/60 min-h-[44px] flex items-center"
+              >
+                My Presentations
+              </Link>
+              <Link
+                href="/settings"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="hover:text-[#FF6B35] transition-colors py-2 border-b border-[#E4E1DA]/60 min-h-[44px] flex items-center"
+              >
+                Settings
+              </Link>
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-6 border-t border-[#E4E1DA]">
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                requireAuth();
+              }}
+              className="w-full bg-[#111111] text-white font-sans text-sm font-extrabold uppercase tracking-wider py-4 rounded-2xl shadow-card flex items-center justify-center gap-2 min-h-[44px]"
+            >
+              <Plus className="w-4 h-4 text-white stroke-[3]" />
+              <span>Create Presentation</span>
+            </button>
+            {isAuthenticated ? (
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  logout();
+                }}
+                className="w-full text-red-600 font-sans text-sm font-bold py-3 flex items-center justify-center gap-2 min-h-[44px]"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Log Out ({displayEmail})</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  openAuthModal('signin');
+                }}
+                className="w-full border border-[#111111] text-[#111111] font-sans text-sm font-bold py-3 rounded-2xl flex items-center justify-center min-h-[44px]"
+              >
+                Sign In
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
