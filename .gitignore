@@ -35,5 +35,6 @@ yarn-error.log*
 .vscode
 
 # TypeScript
-*.tsbuildinfo
-next-env.d.ts
+# Scratch / Temporary Test Scripts
+scratch/
+

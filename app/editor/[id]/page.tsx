@@ -209,42 +209,42 @@ export default function EditorPage() {
         </div>
 
         {/* Right Header Actions */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           <button
             onClick={() => setActiveRightPanel(activeRightPanel === 'sources' ? 'design' : 'sources')}
-            className={`inline-flex items-center gap-1.5 text-xs font-sans font-bold px-3.5 py-2 rounded-xl border transition-all ${
+            className={`hidden sm:inline-flex items-center gap-1.5 text-xs font-sans font-bold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border transition-all ${
               activeRightPanel === 'sources'
                 ? 'bg-[#2D7A58] text-white border-[#2D7A58]'
                 : 'bg-[#F4F4F0] border-[#E4E1DA] text-[#111111] hover:border-[#2D7A58]'
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Research Sources</span>
+            <span className="hidden md:inline">Research Sources</span>
           </button>
 
           <button
             onClick={() => setIsPracticeOpen(true)}
-            className="inline-flex items-center gap-1.5 bg-[#F4F4F0] border border-[#E4E1DA] hover:border-[#111111] text-[#111111] font-sans text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-subtle"
+            className="hidden sm:inline-flex items-center gap-1.5 bg-[#F4F4F0] border border-[#E4E1DA] hover:border-[#111111] text-[#111111] font-sans text-xs font-bold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl transition-all shadow-subtle"
           >
             <Mic className="w-3.5 h-3.5 text-[#FF6B35]" />
-            <span>Practice Coach</span>
+            <span className="hidden md:inline">Practice Coach</span>
           </button>
 
           <button
             onClick={() => setIsPreviewMode(!isPreviewMode)}
-            className={`inline-flex items-center gap-1.5 text-xs font-sans font-bold px-3.5 py-2 rounded-xl border transition-all ${
+            className={`inline-flex items-center gap-1.5 text-xs font-sans font-bold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border transition-all ${
               isPreviewMode
                 ? 'bg-[#111111] text-white border-[#111111]'
                 : 'bg-white border-[#E4E1DA] text-[#666664] hover:text-[#111111]'
             }`}
           >
             <Eye className="w-3.5 h-3.5" />
-            <span>{isPreviewMode ? 'Edit Mode' : 'Preview'}</span>
+            <span className="hidden sm:inline">{isPreviewMode ? 'Edit' : 'Preview'}</span>
           </button>
 
           <button
             onClick={() => setIsExportOpen(true)}
-            className="inline-flex items-center gap-1.5 bg-[#111111] hover:bg-[#2A2A2A] text-white font-sans text-xs font-extrabold uppercase tracking-wider px-5 py-2 rounded-full shadow-card transition-all"
+            className="inline-flex items-center gap-1.5 bg-[#111111] hover:bg-[#2A2A2A] text-white font-sans text-xs font-extrabold uppercase tracking-wider px-3.5 py-1.5 sm:px-5 sm:py-2 rounded-full shadow-card transition-all"
           >
             <Download className="w-3.5 h-3.5" />
             <span>EXPORT</span>
@@ -253,7 +253,7 @@ export default function EditorPage() {
           <button
             onClick={logout}
             title="Log Out"
-            className="p-2 rounded-full border border-[#E4E1DA] text-[#666664] hover:text-red-600 hover:bg-red-50 transition-colors"
+            className="p-1.5 sm:p-2 rounded-full border border-[#E4E1DA] text-[#666664] hover:text-red-600 hover:bg-red-50 transition-colors"
           >
             <LogOut className="w-4 h-4" />
           </button>

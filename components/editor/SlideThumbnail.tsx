@@ -24,7 +24,7 @@ export default function SlideThumbnail({
   onAddSlide,
 }: SlideThumbnailProps) {
   return (
-    <div className="w-56 bg-white border-r border-[#E4E1DA] h-full flex flex-col justify-between shrink-0 select-none font-sans shadow-subtle">
+    <div className="w-40 sm:w-56 bg-white border-r border-[#E4E1DA] h-full flex flex-col justify-between shrink-0 select-none font-sans shadow-subtle">
       {/* Header Bar */}
       <div className="p-4 border-b border-[#E4E1DA] flex items-center justify-between">
         <span className="text-xs font-mono font-bold text-[#666664] uppercase tracking-wider">
