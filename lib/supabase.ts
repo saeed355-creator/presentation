@@ -17,6 +17,20 @@ export const supabase = isSupabaseConfigured
     })
   : null;
 
+// Cookie sync helper to ensure Next.js Middleware and browser session state stay 100% in sync
+export function syncAuthCookie(session: any) {
+  if (typeof document === 'undefined') return;
+  if (session && (session.access_token || session.user)) {
+    document.cookie = `sb-auth-token=active; path=/; max-age=604800; SameSite=Lax`;
+    if (session.access_token) {
+      document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=604800; SameSite=Lax`;
+    }
+  } else {
+    document.cookie = `sb-auth-token=; path=/; max-age=0; SameSite=Lax`;
+    document.cookie = `sb-access-token=; path=/; max-age=0; SameSite=Lax`;
+  }
+}
+
 export async function getCurrentSession() {
   if (!supabase) return null;
   const { data } = await supabase.auth.getSession();
@@ -30,12 +44,18 @@ export async function getCurrentUser() {
 }
 
 export async function signOutUser() {
-  if (!supabase) return;
-  await supabase.auth.signOut();
+  if (supabase) {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn('Supabase signout notice:', err);
+    }
+  }
+  syncAuthCookie(null);
   if (typeof window !== 'undefined') {
     // Clear local storage auth session tokens
     Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('sb-') || key.includes('auth-token')) {
+      if (key.startsWith('sb-') || key.includes('auth-token') || key.includes('supabase')) {
         localStorage.removeItem(key);
       }
     });

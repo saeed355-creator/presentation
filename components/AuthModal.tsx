@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Mail, Lock, X, AlertCircle, RefreshCw, Eye, EyeOff, ArrowRight } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase, syncAuthCookie } from '@/lib/supabase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -12,10 +12,8 @@ interface AuthModalProps {
   initialMode?: 'signin' | 'signup';
 }
 
-function setLocalSessionCookie() {
-  if (typeof document !== 'undefined') {
-    document.cookie = 'sb-auth-token=active; path=/; max-age=86400; SameSite=Lax';
-  }
+function setLocalSessionCookie(session?: any) {
+  syncAuthCookie(session || { user: { id: 'active' } });
 }
 
 export default function AuthModal({
