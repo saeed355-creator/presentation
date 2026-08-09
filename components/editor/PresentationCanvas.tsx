@@ -136,10 +136,10 @@ export default function PresentationCanvas({
       )}
 
       {/* Main 16:9 Slide Canvas Frame */}
-      <div className="flex-1 flex items-center justify-center relative">
+      <div className="flex-1 flex items-center justify-center relative w-full overflow-x-auto p-2 sm:p-0">
         <div
           id="slide-canvas-container"
-          className="w-full max-w-4xl aspect-[16/9] rounded-2xl shadow-dark overflow-hidden border border-[#2A2A2A] transition-all"
+          className="w-full max-w-4xl aspect-[16/9] rounded-2xl shadow-dark overflow-hidden border border-[#2A2A2A] transition-all min-w-[280px]"
         >
           <SlideLayoutRenderer slide={slide} theme={theme} onUpdateSlide={onUpdateSlide} />
         </div>

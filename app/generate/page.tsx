@@ -299,7 +299,7 @@ function GenerateFormContent() {
           )}
 
           {/* Elevated White Card Container */}
-          <div className="bg-white border border-[#E4E1DA] rounded-3xl p-8 sm:p-12 shadow-card max-w-3xl mx-auto space-y-8">
+          <div className="bg-white border border-[#E4E1DA] rounded-3xl p-5 sm:p-12 shadow-card max-w-3xl mx-auto space-y-8">
             <form onSubmit={handleOpenBriefModal} className="space-y-8">
               {/* CORE TOPIC */}
               <div>

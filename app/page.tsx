@@ -15,7 +15,7 @@ import Footer from '@/components/Footer';
 
 export default function PublicLandingPage() {
   return (
-    <main className="min-h-screen bg-[#F4F4F0] text-[#111111] selection:bg-[#111111]/90 selection:text-white">
+    <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#F4F4F0] text-[#111111] selection:bg-[#111111]/90 selection:text-white">
       <Navbar />
       <Hero />
       <ProblemFlow />
