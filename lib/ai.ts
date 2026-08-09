@@ -14,6 +14,7 @@ import {
   ResearchMode,
   ResearchSource,
   ResearchSummaryData,
+  PresentationBrief,
 } from './types';
 
 // Curated Editorial Image Assets by Topic & Category
@@ -445,9 +446,7 @@ export async function refreshPresentationResearch(deck: Presentation): Promise<P
   };
 
   return validatePresentationQuality(updatedDeck);
-}
-
-// Generate Full Presentation via Gemini AI API with Grounded Web Research
+}// Generate Full Presentation via Gemini AI API with Grounded Web Research & Presentation Brief
 export async function generateAIPresentation(
   topic: string,
   audience: AudienceType = 'professional',
@@ -456,19 +455,29 @@ export async function generateAIPresentation(
   tone: ToneType = 'professional',
   theme: ThemeType = 'dark-violet',
   customOutline?: StoryOutlineItem[],
-  researchMode: ResearchMode = 'standard'
+  researchMode: ResearchMode = 'standard',
+  brief?: PresentationBrief
 ): Promise<Presentation> {
-  const queries = await generateResearchQueries(topic, researchMode);
-  const research = await executeGroundedSearch(topic, queries, researchMode);
+  const actualTopic = brief?.topic || topic;
+  const actualAudience = (brief?.audience === 'Other' ? brief.audienceCustom : brief?.audience) || audience;
+  const actualPurpose = (brief?.purpose === 'Other' ? brief.purposeCustom : brief?.purpose) || purpose;
+  const actualTone = (brief?.tone === 'Other' ? brief.toneCustom : brief?.tone) || tone;
+  const actualSlideCount = brief?.slideCount || slideCount;
+  const actualResearchMode = brief?.researchLevel || researchMode;
+  const targetLanguage = (brief?.language === 'Other' ? brief.languageCustom : brief?.language) || 'English';
+
+  const queries = await generateResearchQueries(actualTopic, actualResearchMode);
+  const research = await executeGroundedSearch(actualTopic, queries, actualResearchMode);
 
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     console.log('No GEMINI_API_KEY found in env, using fallback story generator with grounded research data.');
-    const fallback = generateFallbackPresentation(topic, audience, purpose, slideCount, tone, theme, customOutline);
-    fallback.researchMode = researchMode;
+    const fallback = generateFallbackPresentation(actualTopic, actualAudience as any, actualPurpose as any, actualSlideCount, actualTone as any, theme, customOutline);
+    fallback.researchMode = actualResearchMode;
     fallback.researchData = research;
     fallback.sources = research.sources;
+    fallback.brief = brief;
     return validatePresentationQuality(fallback);
   }
 
@@ -481,28 +490,38 @@ export async function generateAIPresentation(
 
       const outlineContext = customOutline && customOutline.length > 0
         ? `Follow this explicit approved outline: ${JSON.stringify(customOutline)}`
-        : `Generate ${slideCount} slides with varied slide layouts (title, problem, solution, comparison, process, statistics, chart, text-image, summary).`;
+        : `Generate ${actualSlideCount} slides with varied slide layouts (title, problem, solution, comparison, process, statistics, chart, text-image, summary).`;
 
-      const researchContext = `Verified Research Findings for "${topic}":
+      const briefContext = brief ? `PRESENTATION BRIEF DIRECTIVES:
+- Style: ${brief.style === 'Other' ? brief.styleCustom : brief.style}
+- Visual Preferences: ${brief.visualPreferences.join(', ')}
+- Target Language: ${targetLanguage}
+- Special Instructions: ${brief.specialRequirements || 'None'}` : '';
+
+      const researchContext = `Verified Research Findings for "${actualTopic}":
 Key Facts: ${research.keyFacts.join('; ')}
 Sources: ${research.sources.map(s => `${s.sourceName} (${s.title})`).join(', ')}`;
 
       const systemPrompt = `You are an elite AI presentation story engine, strategic design architect, and research analyst.
 Generate a presentation based on:
-Topic: "${topic}"
-Target Audience: "${audience}"
-Presentation Purpose: "${purpose}"
-Tone: "${tone}"
-Requested Slide Count: ${slideCount}
+Topic: "${actualTopic}"
+Target Audience: "${actualAudience}"
+Presentation Purpose: "${actualPurpose}"
+Tone: "${actualTone}"
+Requested Slide Count: ${actualSlideCount}
+Language: Write ALL slide titles, subtitles, bullets, and text in ${targetLanguage}.
+
+${briefContext}
 
 ${researchContext}
 
 ${outlineContext}
 
 CRITICAL RULES:
-1. Incorporate real research facts and statistics.
-2. Provide slide-level citations where factual claims are made.
-3. The FINAL SLIDE MUST be a "SOURCES / REFERENCES" slide (layout: "summary") listing main research citations.
+1. Respect target language (${targetLanguage}).
+2. Incorporate real research facts and statistics.
+3. Provide slide-level citations where factual claims are made.
+4. The FINAL SLIDE MUST be a "SOURCES / REFERENCES" slide (layout: "summary") listing main research citations.
 
 Your response MUST be strict raw JSON without markdown formatting.
 Schema:

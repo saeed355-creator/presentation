@@ -15,6 +15,7 @@ export async function POST(req: Request) {
       mode = 'full',
       outline = null,
       researchMode = 'standard',
+      brief = null,
     } = body;
 
     if (!topic || typeof topic !== 'string') {
@@ -42,7 +43,8 @@ export async function POST(req: Request) {
       tone as ToneType,
       theme as ThemeType,
       outline,
-      researchMode
+      researchMode,
+      brief
     );
 
     return NextResponse.json({ success: true, presentation });

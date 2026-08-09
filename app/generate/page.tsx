@@ -54,6 +54,9 @@ const TONES: { id: ToneType; label: string }[] = [
   { id: 'academic', label: 'Academic' },
 ];
 
+import PresentationBriefModal from '@/components/PresentationBriefModal';
+import { PresentationBrief } from '@/lib/types';
+
 function GenerateFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -66,6 +69,8 @@ function GenerateFormContent() {
   const [slideCount, setSlideCount] = useState<number>(10);
   const [theme, setTheme] = useState<ThemeType>('dark-violet');
   const [researchMode, setResearchMode] = useState<'quick' | 'standard' | 'deep'>('standard');
+  const [isBriefModalOpen, setIsBriefModalOpen] = useState(false);
+  const [currentBrief, setCurrentBrief] = useState<PresentationBrief | null>(null);
 
   // Step 1: Config, Step 2: Outline Review, Step 3: Full Deck Generating
   const [step, setStep] = useState<'config' | 'outline' | 'generating'>('config');
@@ -80,42 +85,11 @@ function GenerateFormContent() {
     if (qTopic) setTopic(decodeURIComponent(qTopic));
   }, [searchParams]);
 
-  // Step 1 -> Step 2: Generate Story Outline
-  const handleGenerateOutline = async (e: React.FormEvent) => {
+  // Form Submit -> Opens Smart Presentation Brief Interview Modal
+  const handleOpenBriefModal = (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim()) return;
-
-    setIsGeneratingOutline(true);
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topic,
-          audience,
-          purpose,
-          slideCount,
-          tone,
-          theme,
-          mode: 'outline',
-        }),
-      });
-      const data = await res.json();
-
-      let items = data.outline;
-      if (!items || items.length === 0) {
-        items = generateFallbackOutline(topic, audience, purpose, slideCount);
-      }
-      setOutline(items);
-      setStep('outline');
-    } catch (err) {
-      console.warn('Outline generation notice, using story engine:', err);
-      const fallbackItems = generateFallbackOutline(topic, audience, purpose, slideCount);
-      setOutline(fallbackItems);
-      setStep('outline');
-    } finally {
-      setIsGeneratingOutline(false);
-    }
+    setIsBriefModalOpen(true);
   };
 
   // Outline Editing Actions
@@ -155,7 +129,43 @@ function GenerateFormContent() {
     setOutline([...outline, newItem]);
   };
 
-  // Step 2 -> Final: Generate Full Presentation
+  const handleGenerateOutline = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!topic.trim()) return;
+
+    setIsGeneratingOutline(true);
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic,
+          audience,
+          purpose,
+          slideCount,
+          tone,
+          theme,
+          mode: 'outline',
+        }),
+      });
+      const data = await res.json();
+
+      let items = data.outline;
+      if (!items || items.length === 0) {
+        items = generateFallbackOutline(topic, audience, purpose, slideCount);
+      }
+      setOutline(items);
+      setStep('outline');
+    } catch (err) {
+      console.warn('Outline generation notice, using story engine:', err);
+      const fallbackItems = generateFallbackOutline(topic, audience, purpose, slideCount);
+      setOutline(fallbackItems);
+      setStep('outline');
+    } finally {
+      setIsGeneratingOutline(false);
+    }
+  };
+
   const handleGenerateFullPresentation = async () => {
     setStep('generating');
     setCurrentStepIdx(0);
@@ -178,7 +188,7 @@ function GenerateFormContent() {
           topic,
           audience,
           purpose,
-          slideCount: outline.length,
+          slideCount: outline.length > 0 ? outline.length : slideCount,
           tone,
           theme,
           mode: 'full',
@@ -189,14 +199,66 @@ function GenerateFormContent() {
 
       let deck = data.presentation;
       if (!deck) {
-        deck = generateFallbackPresentation(topic, audience, purpose, outline.length, tone, theme, outline);
+        deck = generateFallbackPresentation(topic, audience, purpose, outline.length > 0 ? outline.length : slideCount, tone, theme, outline);
       }
 
       savePresentation(deck);
       router.push(`/editor/${deck.id}`);
     } catch (err) {
       console.error('Full generation error, using fallback deck:', err);
-      const fallbackDeck = generateFallbackPresentation(topic, audience, purpose, outline.length, tone, theme, outline);
+      const fallbackDeck = generateFallbackPresentation(topic, audience, purpose, outline.length > 0 ? outline.length : slideCount, tone, theme, outline);
+      savePresentation(fallbackDeck);
+      router.push(`/editor/${fallbackDeck.id}`);
+    }
+  };
+
+  // Brief Confirmed -> Triggers Full Deck Generation Pipeline
+  const handleConfirmBrief = async (brief: PresentationBrief) => {
+    setIsBriefModalOpen(false);
+    setCurrentBrief(brief);
+    setStep('generating');
+    setCurrentStepIdx(0);
+
+    const stepInterval = setInterval(() => {
+      setCurrentStepIdx((prev) => {
+        if (prev >= AI_PIPELINE_STEPS.length - 1) {
+          clearInterval(stepInterval);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 650);
+
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: brief.topic,
+          audience: brief.audience,
+          purpose: brief.purpose,
+          slideCount: brief.slideCount,
+          tone: brief.tone,
+          theme,
+          mode: 'full',
+          researchMode: brief.researchLevel,
+          brief,
+        }),
+      });
+      const data = await res.json();
+
+      let deck = data.presentation;
+      if (!deck) {
+        deck = generateFallbackPresentation(brief.topic, brief.audience as any, brief.purpose as any, brief.slideCount, brief.tone as any, theme);
+        deck.brief = brief;
+      }
+
+      savePresentation(deck);
+      router.push(`/editor/${deck.id}`);
+    } catch (err) {
+      console.error('Generation error, using fallback deck:', err);
+      const fallbackDeck = generateFallbackPresentation(brief.topic, brief.audience as any, brief.purpose as any, brief.slideCount, brief.tone as any, theme);
+      fallbackDeck.brief = brief;
       savePresentation(fallbackDeck);
       router.push(`/editor/${fallbackDeck.id}`);
     }
@@ -219,7 +281,7 @@ function GenerateFormContent() {
 
           {/* Elevated White Card Container */}
           <div className="bg-white border border-[#E4E1DA] rounded-3xl p-8 sm:p-12 shadow-card max-w-3xl mx-auto space-y-8">
-            <form onSubmit={handleGenerateOutline} className="space-y-8">
+            <form onSubmit={handleOpenBriefModal} className="space-y-8">
               {/* CORE TOPIC */}
               <div>
                 <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-[#666664] uppercase tracking-wider mb-2">
@@ -620,6 +682,14 @@ function GenerateFormContent() {
           </div>
         </div>
       )}
+
+      {/* SMART PRESENTATION BRIEF INTERVIEW MODAL */}
+      <PresentationBriefModal
+        isOpen={isBriefModalOpen}
+        topic={topic}
+        onClose={() => setIsBriefModalOpen(false)}
+        onConfirmBrief={handleConfirmBrief}
+      />
     </div>
   );
 }

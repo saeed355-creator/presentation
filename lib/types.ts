@@ -165,6 +165,29 @@ export interface QualityScore {
   recommendations: string[];
 }
 
+export interface PresentationBrief {
+  topic: string;
+  purpose: string;
+  purposeCustom?: string;
+  audience: string;
+  audienceCustom?: string;
+  style: string;
+  styleCustom?: string;
+  depth: string;
+  depthCustom?: string;
+  slideCount: number;
+  visualPreferences: string[];
+  visualsCustom?: string;
+  researchLevel: ResearchMode;
+  sourcePreference: string;
+  sourceCustom?: string;
+  tone: string;
+  toneCustom?: string;
+  language: string;
+  languageCustom?: string;
+  specialRequirements?: string;
+}
+
 export interface Presentation {
   id: string;
   title: string;
@@ -183,6 +206,7 @@ export interface Presentation {
   researchMode?: ResearchMode;
   researchData?: ResearchSummaryData;
   sources?: ResearchSource[];
+  brief?: PresentationBrief;
 }
 
 export interface ThemeConfig {
