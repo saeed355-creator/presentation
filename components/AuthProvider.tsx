@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase, isSupabaseConfigured, signOutUser, syncAuthCookie } from '@/lib/supabase';
 import { User, Session } from '@supabase/supabase-js';
@@ -33,7 +33,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'signin' | 'signup'>('signin');
-  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+
+  // Use useRef to store pending action callback safely without React functional updater side-effects
+  const pendingActionRef = useRef<(() => void) | null>(null);
+
+  const handleModalSuccess = useCallback(() => {
+    setIsAuthModalOpen(false);
+
+    // Ensure session cookie is synchronously set on document.cookie
+    syncAuthCookie({ user: { id: 'active' } });
+
+    const targetAction = pendingActionRef.current;
+    pendingActionRef.current = null;
+
+    if (targetAction) {
+      targetAction();
+    } else {
+      if (typeof window !== 'undefined' && window.location.pathname === '/') {
+        window.location.href = '/generate';
+      } else {
+        router.push('/generate');
+      }
+    }
+  }, [router]);
 
   // Initialize and listen to Supabase session state
   useEffect(() => {
@@ -69,6 +91,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(currentSession?.user ?? null);
         syncAuthCookie(currentSession);
         setLoading(false);
+
+        if (currentSession && isAuthModalOpen) {
+          handleModalSuccess();
+        }
       }
     });
 
@@ -76,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [isAuthModalOpen, handleModalSuccess]);
 
   // Handle URL auth query parameters (auth=signin or auth=signup) cleanly AFTER auth loading finishes
   useEffect(() => {
@@ -99,9 +125,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // User is unauthenticated: trigger auth modal
           setModalMode(authParam);
           if (redirectParam) {
-            setPendingAction(() => () => router.push(redirectParam));
+            pendingActionRef.current = () => router.push(redirectParam);
           } else {
-            setPendingAction(() => () => router.push('/generate'));
+            pendingActionRef.current = () => router.push('/generate');
           }
           setIsAuthModalOpen(true);
         }
@@ -111,11 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const openAuthModal = useCallback((mode: 'signin' | 'signup' = 'signin', action?: () => void) => {
     setModalMode(mode);
-    if (action) {
-      setPendingAction(() => action);
-    } else {
-      setPendingAction(() => () => router.push('/generate'));
-    }
+    pendingActionRef.current = action || (() => router.push('/generate'));
     setIsAuthModalOpen(true);
   }, [router]);
 
@@ -135,16 +157,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [loading, session, user, openAuthModal, router]);
 
-  const handleModalSuccess = useCallback(() => {
-    setIsAuthModalOpen(false);
-    if (pendingAction) {
-      pendingAction();
-      setPendingAction(null);
-    } else {
-      router.push('/generate');
-    }
-  }, [pendingAction, router]);
-
   const logout = useCallback(async () => {
     setLoading(true);
     await signOutUser();
@@ -152,6 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(null);
     syncAuthCookie(null);
     setIsAuthModalOpen(false);
+    pendingActionRef.current = null;
     setLoading(false);
     router.replace('/');
   }, [router]);
