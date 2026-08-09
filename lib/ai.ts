@@ -163,16 +163,19 @@ export function classifyTopicDomain(topic: string): TopicDomain {
   if (/\b(sierra|tata|ev|electric vehicle|cars?|automobiles?|automotive|suvs?|tesla|nexon|curvv|toyota)\b/i.test(lower)) {
     return 'automotive_ev';
   }
-  if (/\b(healthcare|medical|medicine|health|doctor|hospital|patient|pharma|clinical|climate|climate change|global warming|environmental)\b/i.test(lower)) {
+  if (/\b(healthcare|medical|medicine|health|doctor|hospital|patient|pharma|clinical|climate|climate change|global warming|environmental|ecology|emission)\b/i.test(lower)) {
     return 'academic';
   }
-  if (/\b(history|space program|isro|nasa|moon|mars|satellites?|rockets?|century|revolution|war|archives?)\b/i.test(lower)) {
+  if (/\b(artificial intelligence in healthcare|ai in healthcare|ai for health|machine learning in medicine)\b/i.test(lower)) {
+    return 'academic';
+  }
+  if (/\b(history|space program|isro|nasa|moon|mars|satellites?|rockets?|century|revolution|war|archives?|indian space)\b/i.test(lower)) {
     return 'history';
   }
   if (/\b(pitch|startup|investors?|fundraising|business model|tam|gtm|seed|series a)\b/i.test(lower)) {
     return 'startup_pitch';
   }
-  if (/\b(blockchain|network|code|software|cyber|security|ai|tech|artificial intelligence)\b/i.test(lower)) {
+  if (/\b(blockchain|distributed ledger|consensus mechanism|cryptographic|hash|web3|network|code|software|cyber|security|ai|tech|artificial intelligence)\b/i.test(lower)) {
     return 'technology';
   }
   return 'general';
@@ -1042,7 +1045,7 @@ Schema:
       const rawDeck: Presentation = {
         id,
         title: parsed.title || actualTopic,
-        subtitle: parsed.subtitle || `Present.AI Verified Research Engine for ${actualAudience}`,
+        subtitle: parsed.subtitle || `AI-Powered Research Presentation — ${actualAudience} Edition`,
         topic: actualTopic,
         audience: actualAudience as AudienceType,
         purpose: actualPurpose as PurposeType,
