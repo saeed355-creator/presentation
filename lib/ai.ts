@@ -77,25 +77,25 @@ export function getCuratedAssetUrl(topic: string, index: number): string {
   const lower = topic.toLowerCase();
   let pool = TOPIC_ASSETS.default;
 
-  if (lower.includes('sierra') || lower.includes('tata') || lower.includes('ev') || lower.includes('electric vehicle') || lower.includes('car') || lower.includes('automobile') || lower.includes('suv') || lower.includes('tesla') || lower.includes('vehicle')) {
-    pool = TOPIC_ASSETS.automotive;
-  } else if (lower.includes('space') || lower.includes('isro') || lower.includes('rocket') || lower.includes('satellite') || lower.includes('moon') || lower.includes('mars')) {
-    pool = TOPIC_ASSETS.space;
-  } else if (lower.includes('solar') || lower.includes('renewable') || lower.includes('wind') || lower.includes('clean energy')) {
-    pool = TOPIC_ASSETS.solar;
-  } else if (lower.includes('health') || lower.includes('medical') || lower.includes('doctor') || lower.includes('hospital') || lower.includes('patient')) {
+  if (/\b(healthcare|medical|doctor|hospital|patient|health|pharma)\b/i.test(lower)) {
     pool = TOPIC_ASSETS.healthcare;
-  } else if (lower.includes('cyber') || lower.includes('security') || lower.includes('shield') || lower.includes('hack')) {
+  } else if (/\b(sierra|tata|ev|electric vehicle|cars?|automobiles?|suvs?|tesla|vehicles?)\b/i.test(lower)) {
+    pool = TOPIC_ASSETS.automotive;
+  } else if (/\b(space|isro|rocket|satellite|moon|mars)\b/i.test(lower)) {
+    pool = TOPIC_ASSETS.space;
+  } else if (/\b(solar|renewable|wind|clean energy)\b/i.test(lower)) {
+    pool = TOPIC_ASSETS.solar;
+  } else if (/\b(cyber|security|shield|hack)\b/i.test(lower)) {
     pool = TOPIC_ASSETS.cyber;
-  } else if (lower.includes('finance') || lower.includes('invest') || lower.includes('bank') || lower.includes('fund') || lower.includes('stock')) {
+  } else if (/\b(finance|invest|bank|fund|stock)\b/i.test(lower)) {
     pool = TOPIC_ASSETS.finance;
-  } else if (lower.includes('tech') || lower.includes('ai') || lower.includes('data') || lower.includes('code') || lower.includes('network') || lower.includes('software')) {
+  } else if (/\b(tech|ai|data|code|network|software|artificial intelligence)\b/i.test(lower)) {
     pool = TOPIC_ASSETS.technology;
-  } else if (lower.includes('pitch') || lower.includes('business') || lower.includes('market') || lower.includes('revenue') || lower.includes('startup')) {
+  } else if (/\b(pitch|business|market|revenue|startup)\b/i.test(lower)) {
     pool = TOPIC_ASSETS.business;
-  } else if (lower.includes('climate') || lower.includes('energy') || lower.includes('green') || lower.includes('environment')) {
+  } else if (/\b(climate|energy|green|environment)\b/i.test(lower)) {
     pool = TOPIC_ASSETS.climate;
-  } else if (lower.includes('education') || lower.includes('school') || lower.includes('learn') || lower.includes('student') || lower.includes('university')) {
+  } else if (/\b(education|school|learn|student|university)\b/i.test(lower)) {
     pool = TOPIC_ASSETS.education;
   }
 
@@ -156,19 +156,20 @@ export type TopicDomain = 'academic' | 'startup_pitch' | 'history' | 'technology
 
 export function classifyTopicDomain(topic: string): TopicDomain {
   const lower = topic.toLowerCase();
-  if (lower.includes('sierra') || lower.includes('tata') || lower.includes('ev') || lower.includes('electric vehicle') || lower.includes('car') || lower.includes('automobile') || lower.includes('suv') || lower.includes('tesla') || lower.includes('nexon') || lower.includes('curvv')) {
+
+  if (/\b(sierra|tata|ev|electric vehicle|cars?|automobiles?|automotive|suvs?|tesla|nexon|curvv)\b/i.test(lower)) {
     return 'automotive_ev';
   }
-  if (lower.includes('history') || lower.includes('space program') || lower.includes('war') || lower.includes('century') || lower.includes('revolution') || lower.includes('origin') || lower.includes('isro')) {
-    return 'history';
-  }
-  if (lower.includes('pitch') || lower.includes('startup') || lower.includes('investor') || lower.includes('fundraising') || lower.includes('business model')) {
-    return 'startup_pitch';
-  }
-  if (lower.includes('healthcare') || lower.includes('medical') || lower.includes('climate') || lower.includes('science') || lower.includes('biology') || lower.includes('research') || lower.includes('warming')) {
+  if (/\b(healthcare|medical|medicine|health|doctor|hospital|patient|pharma|clinical)\b/i.test(lower)) {
     return 'academic';
   }
-  if (lower.includes('blockchain') || lower.includes('network') || lower.includes('code') || lower.includes('software') || lower.includes('cyber') || lower.includes('ai') || lower.includes('tech') || lower.includes('security')) {
+  if (/\b(history|space program|isro|nasa|moon|mars|satellites?|rockets?|century|revolution|war|archives?)\b/i.test(lower)) {
+    return 'history';
+  }
+  if (/\b(pitch|startup|investors?|fundraising|business model|tam|gtm|seed|series a)\b/i.test(lower)) {
+    return 'startup_pitch';
+  }
+  if (/\b(blockchain|network|code|software|cyber|security|ai|tech|artificial intelligence)\b/i.test(lower)) {
     return 'technology';
   }
   return 'general';
@@ -731,223 +732,49 @@ export function generateFallbackPresentation(
   };
 }
 
-// Real-Time Research Query Generator
-export async function generateResearchQueries(topic: string, mode: ResearchMode = 'standard'): Promise<string[]> {
-  const count = mode === 'quick' ? 3 : mode === 'deep' ? 6 : 4;
-  return [
-    `${topic} statistics data market report`,
-    `${topic} key trends developments recent updates`,
-    `${topic} authoritative research findings policy`,
-    `${topic} challenges outlook forecast`,
-    `${topic} official government academic publication`,
-    `${topic} competitive landscape metrics`,
-  ].slice(0, count);
-}
+import { executeProductionResearch, StructuredResearchData } from './research';
 
-// Real-Time Web Research & Grounding Engine via Gemini API
+// Legacy research interface wrapper pointing to production research engine
 export async function executeGroundedSearch(
   topic: string,
   queries: string[],
   mode: ResearchMode = 'standard'
 ): Promise<ResearchSummaryData> {
-  const timestamp = new Date().toISOString();
-
-  const domain = classifyTopicDomain(topic);
-
-  let defaultSources: ResearchSource[] = [];
-  if (domain === 'automotive_ev') {
-    defaultSources = [
-      {
-        id: 'src-1',
-        sourceName: 'Tata Motors Official Press & EV Division',
-        title: `${topic} Official Concept & Gen-2 Acti.ev Architecture Release`,
-        url: 'https://www.tatamotors.com/press-releases',
-        date: '2026',
-        snippet: `Official specifications, battery range metrics, and production timeline for ${topic}.`,
-        usedInSlides: [1, 3, 5],
-        verificationStatus: 'VERIFIED',
-      },
-      {
-        id: 'src-2',
-        sourceName: 'Autocar & Automotive Research Bureau',
-        title: `Indian EV Market Analysis & Technical Specifications: ${topic}`,
-        url: 'https://www.autocarindia.com/car-news',
-        date: '2026',
-        snippet: `Independent road testing, dual-motor AWD analysis, and competitor benchmarking.`,
-        usedInSlides: [2, 4, 6],
-        verificationStatus: 'VERIFIED',
-      },
-    ];
-  } else if (domain === 'technology') {
-    defaultSources = [
-      {
-        id: 'src-1',
-        sourceName: 'IEEE Computer Society & Cyber Security Alliance',
-        title: `Enterprise Architecture & Technical Standards for ${topic}`,
-        url: 'https://www.ieee.org/publications',
-        date: '2026',
-        snippet: `Technical benchmarks, zero-trust protocols, and cryptographic security verification for ${topic}.`,
-        usedInSlides: [1, 2, 4],
-        verificationStatus: 'VERIFIED',
-      },
-      {
-        id: 'src-2',
-        sourceName: 'Gartner Research & Cloud Security Briefing',
-        title: `Global Trends & Market Adoption Metrics in ${topic}`,
-        url: 'https://www.gartner.com/research',
-        date: '2025-2026',
-        snippet: `Quantitative deployment metrics and enterprise adoption data.`,
-        usedInSlides: [3, 5, 6],
-        verificationStatus: 'VERIFIED',
-      },
-    ];
-  } else if (domain === 'history') {
-    defaultSources = [
-      {
-        id: 'src-1',
-        sourceName: 'ISRO & National Historical Archives Consortium',
-        title: `Official Chronological History & Mission Archives: ${topic}`,
-        url: 'https://www.isro.gov.in/archives',
-        date: '2026',
-        snippet: `Historical records, foundational milestones, and official institutional documentation.`,
-        usedInSlides: [1, 3, 5],
-        verificationStatus: 'VERIFIED',
-      },
-      {
-        id: 'src-2',
-        sourceName: 'Global Scientific History & Research Publications',
-        title: `Socio-Economic & Technological Legacy of ${topic}`,
-        url: 'https://www.nature.com/history',
-        date: '2025',
-        snippet: `Peer-reviewed historical assessment of milestones and global impacts.`,
-        usedInSlides: [2, 4, 6],
-        verificationStatus: 'VERIFIED',
-      },
-    ];
-  } else {
-    defaultSources = [
-      {
-        id: 'src-1',
-        sourceName: 'Global Industry Intelligence & Research Observatory',
-        title: `Comprehensive Strategic Briefing & Benchmark Data: ${topic}`,
-        url: 'https://www.researchandmarkets.com/reports',
-        date: '2026',
-        snippet: `Verified empirical benchmarks and adoption metrics regarding ${topic}.`,
-        usedInSlides: [1, 2, 4],
-        verificationStatus: 'VERIFIED',
-      },
-      {
-        id: 'src-2',
-        sourceName: 'Government & Policy Research Consortium',
-        title: `Regulatory Frameworks & Multi-Year Projections on ${topic}`,
-        url: 'https://www.gov.in/research',
-        date: '2025-2026',
-        snippet: `Public policy initiatives, market growth, and strategic impact analysis.`,
-        usedInSlides: [3, 5, 6],
-        verificationStatus: 'VERIFIED',
-      },
-    ];
-  }
-
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return {
-      topic,
-      researchMode: mode,
-      queryList: queries,
-      keyFacts: [
-        `Empirical data shows rapid growth and strategic adoption for ${topic}.`,
-        `Regulatory frameworks and policy initiatives are accelerating deployment globally.`,
-        `Cross-industry evidence points to measurable efficiency and performance gains.`,
-      ],
-      statistics: [
-        { label: 'Market Growth', value: '+340%', sourceId: 'src-1' },
-        { label: 'Adoption Rate', value: '4.8x Faster', sourceId: 'src-2' },
-      ],
-      sources: defaultSources,
-      timestamp,
-    };
-  }
-
-  try {
-    const ai = new GoogleGenerativeAI(apiKey);
-    const model = ai.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      tools: [{ googleSearch: {} }] as any,
-    });
-
-    const prompt = `Perform real-time web research on topic: "${topic}".
-Queries: ${queries.join(', ')}
-
-Return a strict raw JSON object with verified facts, statistics, and citations:
-{
-  "keyFacts": ["fact 1", "fact 2", "fact 3"],
-  "statistics": [{ "label": "string", "value": "string", "sourceId": "src-1" }],
-  "sources": [
-    {
-      "id": "src-1",
-      "sourceName": "string (e.g. World Bank, IEA, WHO, Government Report)",
-      "title": "string (article/report title)",
-      "url": "string (valid https URL)",
-      "date": "string",
-      "snippet": "string",
-      "usedInSlides": [1, 2, 4],
-      "verificationStatus": "VERIFIED"
-    }
-  ]
-}`;
-
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    const cleanJson = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const parsed = JSON.parse(cleanJson);
-
-    return {
-      topic,
-      researchMode: mode,
-      queryList: queries,
-      keyFacts: Array.isArray(parsed.keyFacts) ? parsed.keyFacts : [
-        `Empirical research supports accelerating growth in ${topic}.`,
-      ],
-      statistics: Array.isArray(parsed.statistics) ? parsed.statistics : [
-        { label: 'Efficiency Gain', value: '+340%', sourceId: 'src-1' },
-      ],
-      sources: Array.isArray(parsed.sources) && parsed.sources.length > 0 ? parsed.sources : defaultSources,
-      timestamp,
-    };
-  } catch (err) {
-    console.warn('Grounded search execution notice:', err);
-    return {
-      topic,
-      researchMode: mode,
-      queryList: queries,
-      keyFacts: [
-        `Research indicates high strategic relevance and accelerating investment in ${topic}.`,
-        `Key stakeholders emphasize regulatory compliance and sustainable scalability.`,
-      ],
-      statistics: [
-        { label: 'Growth Vector', value: '4.8x', sourceId: 'src-1' },
-      ],
-      sources: defaultSources,
-      timestamp,
-    };
-  }
+  const prodData = await executeProductionResearch(topic, mode);
+  return {
+    topic: prodData.topic,
+    researchMode: mode,
+    queryList: queries,
+    keyFacts: prodData.facts.map(f => f.claim),
+    statistics: prodData.statistics,
+    sources: prodData.sources,
+    timestamp: prodData.researchDate,
+  };
 }
 
 // Refresh Presentation Research without destroying user slide edits
 export async function refreshPresentationResearch(deck: Presentation): Promise<Presentation> {
-  const queries = await generateResearchQueries(deck.topic, deck.researchMode || 'standard');
-  const freshResearch = await executeGroundedSearch(deck.topic, queries, deck.researchMode || 'standard');
+  const freshResearch = await executeProductionResearch(deck.topic, deck.researchMode || 'standard');
 
   const updatedDeck = {
     ...deck,
-    researchData: freshResearch,
+    researchData: {
+      topic: freshResearch.topic,
+      researchMode: deck.researchMode || 'standard',
+      queryList: [deck.topic],
+      keyFacts: freshResearch.facts.map(f => f.claim),
+      statistics: freshResearch.statistics,
+      sources: freshResearch.sources,
+      timestamp: freshResearch.researchDate,
+    },
     sources: freshResearch.sources,
     updatedAt: new Date().toISOString(),
   };
 
   return validatePresentationQuality(updatedDeck);
-}// Generate Full Presentation via Gemini AI API with Grounded Web Research & Presentation Brief
+}
+
+// Generate Full Presentation via Gemini AI API with Grounded Web Research & Presentation Brief
 export async function generateAIPresentation(
   topic: string,
   audience: AudienceType = 'professional',
@@ -967,13 +794,21 @@ export async function generateAIPresentation(
   const actualResearchMode = brief?.researchLevel || researchMode;
   const targetLanguage = (brief?.language === 'Other' ? brief.languageCustom : brief?.language) || 'English';
 
-  const queries = await generateResearchQueries(actualTopic, actualResearchMode);
-  const research = await executeGroundedSearch(actualTopic, queries, actualResearchMode);
+  const prodResearch = await executeProductionResearch(actualTopic, actualResearchMode);
+  const research: ResearchSummaryData = {
+    topic: prodResearch.topic,
+    researchMode: actualResearchMode,
+    queryList: [actualTopic],
+    keyFacts: prodResearch.facts.map(f => f.claim),
+    statistics: prodResearch.statistics,
+    sources: prodResearch.sources,
+    timestamp: prodResearch.researchDate,
+  };
 
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    console.log('No GEMINI_API_KEY found in env, using fallback story generator with grounded research data.');
+    console.log('No GEMINI_API_KEY found in env, using fallback story generator with production research data.');
     const fallback = generateFallbackPresentation(actualTopic, actualAudience as any, actualPurpose as any, actualSlideCount, actualTone as any, theme, customOutline);
     fallback.researchMode = actualResearchMode;
     fallback.researchData = research;
@@ -999,9 +834,9 @@ export async function generateAIPresentation(
 - Target Language: ${targetLanguage}
 - Special Instructions: ${brief.specialRequirements || 'None'}` : '';
 
-      const researchContext = `Verified Research Findings for "${actualTopic}":
-Key Facts: ${research.keyFacts.join('; ')}
-Sources: ${research.sources.map(s => `${s.sourceName} (${s.title})`).join(', ')}`;
+      const researchContext = `Verified Research Findings from ${prodResearch.providerName} (Category: ${prodResearch.category}) for "${actualTopic}":
+Key Claims & Facts: ${prodResearch.facts.map(f => f.claim).join('; ')}
+Sources: ${prodResearch.sources.map(s => `${s.sourceName} (${s.title} - ${s.url})`).join(', ')}`;
 
       const systemPrompt = `You are an elite AI presentation story engine, strategic design architect, and research analyst.
 Generate a presentation based on:
