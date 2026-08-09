@@ -61,8 +61,8 @@ function GenerateFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Config State
-  const [topic, setTopic] = useState('e.g. Future of Electric Vehicles in India...');
+  // Config State - ALWAYS start with empty string topic to avoid landing-page text leaking
+  const [topic, setTopic] = useState('');
   const [audience, setAudience] = useState<AudienceType>('professional');
   const [purpose, setPurpose] = useState<PurposeType>('meeting');
   const [tone, setTone] = useState<ToneType>('professional');
@@ -292,7 +292,7 @@ function GenerateFormContent() {
                   rows={3}
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  placeholder="e.g. Q3 Financial Review focusing on enterprise growth in APAC region..."
+                  placeholder="Enter any topic (e.g., Tata Sierra EV, Solar Energy in India, Cybersecurity Best Practices, History of Space Program)..."
                   className="w-full bg-[#F4F4F0] border border-[#E4E1DA] focus:border-[#111111] rounded-2xl p-4 text-[#111111] text-base focus:outline-none transition-all resize-none font-sans"
                 />
               </div>

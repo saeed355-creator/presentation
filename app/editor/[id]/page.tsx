@@ -48,7 +48,9 @@ export default function EditorPage() {
   useEffect(() => {
     let deck = getPresentationById(id);
     if (!deck) {
-      deck = generateFallbackPresentation('Q4 Strategy Deck', 'professional', 'meeting', 8, 'professional', 'dark-violet');
+      const topicFromId = id.replace(/^deck-/, '').replace(/-/g, ' ').replace(/\d+/g, '').trim();
+      const fallbackTopic = topicFromId ? topicFromId.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Executive Briefing';
+      deck = generateFallbackPresentation(fallbackTopic, 'professional', 'meeting', 8, 'professional', 'dark-violet');
       deck.id = id;
       savePresentation(deck);
     }
