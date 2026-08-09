@@ -129,10 +129,13 @@ export function calculateQualityScore(
   };
 }
 
-export type TopicDomain = 'academic' | 'startup_pitch' | 'history' | 'technology' | 'general';
+export type TopicDomain = 'academic' | 'startup_pitch' | 'history' | 'technology' | 'automotive_ev' | 'general';
 
 export function classifyTopicDomain(topic: string): TopicDomain {
   const lower = topic.toLowerCase();
+  if (lower.includes('sierra') || lower.includes('tata') || lower.includes('ev') || lower.includes('electric vehicle') || lower.includes('car') || lower.includes('automobile') || lower.includes('suv') || lower.includes('tesla') || lower.includes('nexon') || lower.includes('curvv')) {
+    return 'automotive_ev';
+  }
   if (lower.includes('history') || lower.includes('space program') || lower.includes('war') || lower.includes('century') || lower.includes('revolution') || lower.includes('origin') || lower.includes('isro')) {
     return 'history';
   }
@@ -142,10 +145,97 @@ export function classifyTopicDomain(topic: string): TopicDomain {
   if (lower.includes('healthcare') || lower.includes('medical') || lower.includes('climate') || lower.includes('science') || lower.includes('biology') || lower.includes('research') || lower.includes('warming')) {
     return 'academic';
   }
-  if (lower.includes('blockchain') || lower.includes('network') || lower.includes('ev') || lower.includes('electric vehicle') || lower.includes('code') || lower.includes('software') || lower.includes('cyber') || lower.includes('ai') || lower.includes('tech')) {
+  if (lower.includes('blockchain') || lower.includes('network') || lower.includes('code') || lower.includes('software') || lower.includes('cyber') || lower.includes('ai') || lower.includes('tech') || lower.includes('security')) {
     return 'technology';
   }
   return 'general';
+}
+
+// Generate Substantive Topic-Driven Bullet Content
+export function generateTopicBullets(topic: string, layout: SlideLayoutType, title: string, index: number): string[] {
+  const domain = classifyTopicDomain(topic);
+  const clean = topic.trim();
+
+  if (domain === 'automotive_ev') {
+    if (layout === 'title') {
+      return [
+        `Built on Tata's advanced Gen-2 Acti.ev pure electric platform with high-density battery packaging`,
+        `Expected 450–500 km certified driving range with dual-motor All-Wheel Drive (AWD) capability`,
+        `Signature glass-wrap rear canopy design combining heritage Sierra aesthetics with modern aerodynamics`,
+      ];
+    }
+    if (layout === 'problem') {
+      return [
+        `Accelerating phase-out of traditional diesel/petrol SUVs to meet zero-tailpipe emission targets`,
+        `Higher lifetime operating costs, fuel volatility, and engine maintenance overhead of ICE vehicles`,
+        `Rising consumer demand for high-range, feature-rich electric SUVs tailored for Indian road conditions`,
+      ];
+    }
+    if (layout === 'solution') {
+      return [
+        `High-energy density liquid-cooled battery pack with ultra-fast 150 kW DC charging support`,
+        `Bi-directional charging capabilities including Vehicle-to-Load (V2L) and Vehicle-to-Vehicle (V2V)`,
+        `Integrated quad-display smart cockpit with connected Tata.ev software suite & OTA updates`,
+      ];
+    }
+    if (layout === 'statistics' || layout === 'chart') {
+      return [
+        `Tata Motors commands over 70% share of India's electric passenger vehicle market`,
+        `80% fast-charging achieved in under 55 minutes at public DC charging hubs`,
+        `5-Star Bharat NCAP safety rating architecture engineered for maximum structural protection`,
+      ];
+    }
+    return [
+      `Next-generation Acti.ev modular platform optimizing cabin space and battery thermal management`,
+      `Advanced Driver Assistance Systems (ADAS Level 2) with 360-degree surround camera telemetry`,
+      `Zero-emission quiet cabin experience with regenerative braking for extended urban range`,
+    ];
+  }
+
+  if (domain === 'technology') {
+    if (clean.toLowerCase().includes('cyber') || clean.toLowerCase().includes('security')) {
+      return [
+        `Zero-Trust Network Access (ZTNA) architecture replacing legacy perimeter VPN vulnerabilities`,
+        `Mandatory Multi-Factor Authentication (MFA) and FIDO2 hardware security keys for remote endpoints`,
+        `Automated endpoint detection (EDR), full-disk encryption, and continuous threat monitoring`,
+      ];
+    }
+    return [
+      `High-throughput parallel processing architecture optimizing compute efficiency for ${clean}`,
+      `End-to-end cryptographic security and automated protocol verification`,
+      `Elastic cloud infrastructure providing seamless multi-region deployment and zero-downtime scaling`,
+    ];
+  }
+
+  if (domain === 'academic') {
+    return [
+      `Empirical data collection across multi-dimensional baseline research frameworks for ${clean}`,
+      `Peer-reviewed methodology ensuring statistical significance and reproducible findings`,
+      `Cross-disciplinary application addressing critical environmental and clinical challenges`,
+    ];
+  }
+
+  if (domain === 'history') {
+    return [
+      `Pivotal historical milestone shaping institutional leadership and strategic vision for ${clean}`,
+      `Chronological evolution from foundational breakthroughs to global operational prominence`,
+      `Enduring legacy inspiring next-generation innovation and international space/scientific policy`,
+    ];
+  }
+
+  if (domain === 'startup_pitch') {
+    return [
+      `Addressing a massive $10B+ TAM with scalable unit economics and proprietary technology moat`,
+      `Rapid ARR expansion driven by high net-retention and low customer acquisition costs`,
+      `Experienced executive team poised to capture market leadership in ${clean}`,
+    ];
+  }
+
+  return [
+    `Strategic framework for ${clean} driving operational efficiency and competitive advantage`,
+    `Data-backed decision making aligning cross-functional teams with core organizational objectives`,
+    `Phased implementation roadmap ensuring sustainable long-term ROI and risk mitigation`,
+  ];
 }
 
 // Generate Dynamic Topic-Driven Fallback Outline
@@ -160,7 +250,55 @@ export function generateFallbackOutline(
 
   let domainTemplates: { title: string; summary: string; layout: SlideLayoutType }[] = [];
 
-  if (domain === 'academic') {
+  if (domain === 'automotive_ev') {
+    domainTemplates = [
+      {
+        title: `${cleanTopic}: The Iconic Electric SUV Overview`,
+        summary: `Exploring the return of an Indian automotive legend built on Tata's Gen-2 Acti.ev platform.`,
+        layout: 'title',
+      },
+      {
+        title: 'Legacy ICE Challenges & Environmental Transition',
+        summary: `Analyzing fuel volatility, emissions mandates, and the shift from diesel to pure electric powertrains.`,
+        layout: 'problem',
+      },
+      {
+        title: 'Acti.ev Architecture & Powertrain Innovation',
+        summary: `Unpacking liquid-cooled battery packaging, dual-motor AWD, and fast-charging capabilities.`,
+        layout: 'solution',
+      },
+      {
+        title: 'Traditional Gasoline ICE SUVs vs. Tata Sierra EV',
+        summary: `Comparing running costs, instant electric torque, zero emissions, and connected software features.`,
+        layout: 'comparison',
+      },
+      {
+        title: 'Product Development & Production Roadmap',
+        summary: `From Auto Expo concept unveiling to Bharat NCAP crash testing and nationwide customer deliveries.`,
+        layout: 'process',
+      },
+      {
+        title: 'Range, Efficiency & Performance Benchmarks',
+        summary: `500 km range target, 150 kW DC charging metrics, and 5-star Bharat NCAP safety architecture.`,
+        layout: 'statistics',
+      },
+      {
+        title: 'Indian EV Market Share & Adoption Trajectory',
+        summary: `Visualizing Tata Motors EV market leadership (>70% share) and EV charging network expansion.`,
+        layout: 'chart',
+      },
+      {
+        title: 'Heritage Design Language & Smart Cockpit Features',
+        summary: `Showcasing the iconic glass-roof canopy, quad-display dashboard, and connected Tata.ev ecosystem.`,
+        layout: 'text-image',
+      },
+      {
+        title: 'Future Horizon & Commercial Launch Summary',
+        summary: `Consolidating launch timelines, booking details, and long-term EV market dominance in India.`,
+        layout: 'conclusion',
+      },
+    ];
+  } else if (domain === 'academic') {
     domainTemplates = [
       {
         title: `${cleanTopic}: Executive Scientific Overview`,
@@ -460,7 +598,14 @@ export function generateFallbackPresentation(
 
     let processSteps: ProcessStepItem[] | undefined = undefined;
     if (isProcess) {
-      if (domain === 'technology') {
+      if (domain === 'automotive_ev') {
+        processSteps = [
+          { stepNumber: 1, label: '01 Concept Unveiling', description: 'Auto Expo preview & iconic design reveal' },
+          { stepNumber: 2, label: '02 Gen-2 Platform', description: 'Acti.ev Born-EV architecture & battery integration' },
+          { stepNumber: 3, label: '03 Road & Safety Testing', description: '5-Star Bharat NCAP & thermal validation' },
+          { stepNumber: 4, label: '04 Commercial Launch', description: 'Nationwide production rollout & deliveries' },
+        ];
+      } else if (domain === 'technology') {
         processSteps = [
           { stepNumber: 1, label: '01 Data Input', description: 'Raw payload ingested & validated' },
           { stepNumber: 2, label: '02 Architecture', description: 'Core protocol & consensus validation' },
@@ -486,7 +631,14 @@ export function generateFallbackPresentation(
 
     let comparison = undefined;
     if (isComparison) {
-      if (domain === 'technology') {
+      if (domain === 'automotive_ev') {
+        comparison = {
+          leftTitle: `Traditional ICE SUV (Gasoline/Diesel)`,
+          leftItems: ['High tailpipe emissions & carbon footprint', '50%+ higher operating & fuel maintenance cost', 'Mechanical gear lag & transmission loss'],
+          rightTitle: `${cleanTopic}`,
+          rightItems: ['Zero tailpipe emissions & clean mobility', 'Instant electric torque & dual-motor AWD option', 'Over-The-Air (OTA) updates & 500 km range'],
+        };
+      } else if (domain === 'technology') {
         comparison = {
           leftTitle: `Legacy Infrastructure for ${cleanTopic.slice(0, 20)}`,
           leftItems: ['High processing latency & cost', 'Fragmented data silos & security risk', 'Limited throughput & scaling bottlenecks'],
@@ -510,24 +662,20 @@ export function generateFallbackPresentation(
       }
     }
 
+    const slideContent = generateTopicBullets(cleanTopic, layout, item.title, idx);
+
     return {
       id: `slide-${idx + 1}`,
       slideNumber: idx + 1,
       title: item.title,
       subtitle: item.summary,
       layout,
-      content: [
-        `Key takeaway regarding ${cleanTopic.slice(0, 30)}...`,
-        `Targeted insights aligned specifically for ${audience}`,
-        `Actionable perspective supporting the overall ${purpose} narrative`,
-      ],
+      content: slideContent,
       speakerNotes: `Emphasize key points on slide ${idx + 1} regarding ${cleanTopic} for the target audience.`,
       keyMetric: (isStats || isChart || isProblem)
-        ? {
-            label: 'MEASURED IMPACT',
-            value: '+280%',
-            trend: '↑ 3.8x Accelerated Trajectory',
-          }
+        ? (domain === 'automotive_ev'
+            ? { label: 'TARGET RANGE', value: '500 KM', trend: '↑ 150 kW DC Fast Charging' }
+            : { label: 'MEASURED IMPACT', value: '+280%', trend: '↑ 3.8x Accelerated Trajectory' })
         : undefined,
       comparison,
       chartData,
@@ -889,32 +1037,49 @@ export function validatePresentationQuality(deck: Presentation): Presentation {
   // Ensure every slide has valid properties
   deck.slides = deck.slides.map((slide, i) => {
     if (!slide.title) slide.title = `Slide 0${i + 1}`;
-    if (!slide.content || slide.content.length === 0) {
-      slide.content = [
-        `Key takeaway regarding ${deck.topic || 'strategic roadmap'}`,
-        'Actionable execution item for cross-functional alignment',
-      ];
+    if (!slide.content || slide.content.length === 0 || slide.content.some(c => c.includes('Key takeaway regarding'))) {
+      slide.content = generateTopicBullets(deck.topic || 'Business Strategy', slide.layout, slide.title, i);
     }
     if (!slide.layout) slide.layout = 'solution';
 
+    const domain = classifyTopicDomain(deck.topic || '');
+    const topicContext = deck.topic || 'Target Domain';
+
     // Auto-repair missing layout-specific data (100% Topic-Driven)
     if (slide.layout === 'comparison' && !slide.comparison) {
-      const topicContext = deck.topic || 'Target Domain';
-      slide.comparison = {
-        leftTitle: `Traditional Approach to ${topicContext.slice(0, 20)}`,
-        leftItems: ['Baseline operational friction', 'Fragmented data & process silos', 'Scaling constraints'],
-        rightTitle: `Modern Strategic Architecture`,
-        rightItems: ['High-throughput execution framework', 'Integrated data & workflow telemetry', 'Scalable performance benchmarks'],
-      };
+      if (domain === 'automotive_ev') {
+        slide.comparison = {
+          leftTitle: `Traditional ICE SUV (Gasoline/Diesel)`,
+          leftItems: ['High tailpipe emissions & carbon footprint', '50%+ higher operating & fuel maintenance cost', 'Mechanical gear lag & transmission loss'],
+          rightTitle: `${topicContext}`,
+          rightItems: ['Zero tailpipe emissions & clean mobility', 'Instant electric torque & dual-motor AWD option', 'Over-The-Air (OTA) updates & 500 km range'],
+        };
+      } else {
+        slide.comparison = {
+          leftTitle: `Traditional Approach to ${topicContext.slice(0, 20)}`,
+          leftItems: ['Baseline operational friction', 'Fragmented data & process silos', 'Scaling constraints'],
+          rightTitle: `Modern Strategic Architecture`,
+          rightItems: ['High-throughput execution framework', 'Integrated data & workflow telemetry', 'Scalable performance benchmarks'],
+        };
+      }
     }
 
     if (slide.layout === 'process' && (!slide.processSteps || slide.processSteps.length === 0)) {
-      slide.processSteps = [
-        { stepNumber: 1, label: '01 Requirements', description: 'Context & baseline data mapping' },
-        { stepNumber: 2, label: '02 Architecture', description: 'Systematic framework formulation' },
-        { stepNumber: 3, label: '03 Execution', description: 'Phased rollout & field deployment' },
-        { stepNumber: 4, label: '04 Scaling', description: 'Continuous optimization & expansion' },
-      ];
+      if (domain === 'automotive_ev') {
+        slide.processSteps = [
+          { stepNumber: 1, label: '01 Concept Unveiling', description: 'Auto Expo preview & iconic design reveal' },
+          { stepNumber: 2, label: '02 Gen-2 Platform', description: 'Acti.ev Born-EV architecture & battery integration' },
+          { stepNumber: 3, label: '03 Road & Safety Testing', description: '5-Star Bharat NCAP & thermal validation' },
+          { stepNumber: 4, label: '04 Commercial Launch', description: 'Nationwide production rollout & deliveries' },
+        ];
+      } else {
+        slide.processSteps = [
+          { stepNumber: 1, label: '01 Requirements', description: 'Context & baseline data mapping' },
+          { stepNumber: 2, label: '02 Architecture', description: 'Systematic framework formulation' },
+          { stepNumber: 3, label: '03 Execution', description: 'Phased rollout & field deployment' },
+          { stepNumber: 4, label: '04 Scaling', description: 'Continuous optimization & expansion' },
+        ];
+      }
     }
 
     if (slide.layout === 'chart' && !slide.chartData) {
