@@ -1058,7 +1058,7 @@ Schema:
       const slides: Slide[] = parsed.slides.map((s: any, idx: number) => {
         const layout: SlideLayoutType = s.layout || 'solution';
         const imageUrl = (layout === 'title' || layout === 'text-image' || layout === 'solution')
-          ? getCuratedAssetUrl(topic, idx)
+          ? getCuratedAssetUrl(actualTopic, idx)
           : undefined;
 
         const defaultSource = research.sources[idx % research.sources.length];
@@ -1093,21 +1093,22 @@ Schema:
 
       const rawDeck: Presentation = {
         id,
-        title: parsed.title || topic,
-        subtitle: parsed.subtitle || `Present.AI Verified Research Engine for ${audience}`,
-        topic,
-        audience,
-        purpose,
-        tone,
+        title: parsed.title || actualTopic,
+        subtitle: parsed.subtitle || `Present.AI Verified Research Engine for ${actualAudience}`,
+        topic: actualTopic,
+        audience: actualAudience as AudienceType,
+        purpose: actualPurpose as PurposeType,
+        tone: actualTone as ToneType,
         slideCount: slides.length,
         theme,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         slides,
-        qualityScore: calculateQualityScore(slides, topic, purpose),
-        researchMode,
+        qualityScore: calculateQualityScore(slides, actualTopic, actualPurpose as any),
+        researchMode: actualResearchMode,
         researchData: research,
         sources: research.sources,
+        brief,
       };
 
       return validatePresentationQuality(rawDeck);
@@ -1117,10 +1118,11 @@ Schema:
   }
 
   // Fallback if all Gemini model candidates throw an exception
-  const fallbackDeck = generateFallbackPresentation(topic, audience, purpose, slideCount, tone, theme, customOutline);
-  fallbackDeck.researchMode = researchMode;
+  const fallbackDeck = generateFallbackPresentation(actualTopic, actualAudience as any, actualPurpose as any, actualSlideCount, actualTone as any, theme, customOutline);
+  fallbackDeck.researchMode = actualResearchMode;
   fallbackDeck.researchData = research;
   fallbackDeck.sources = research.sources;
+  fallbackDeck.brief = brief;
   return validatePresentationQuality(fallbackDeck);
 }
 
