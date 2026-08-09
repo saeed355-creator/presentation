@@ -152,15 +152,18 @@ export function calculateQualityScore(
   };
 }
 
-export type TopicDomain = 'academic' | 'startup_pitch' | 'history' | 'technology' | 'automotive_ev' | 'general';
+export type TopicDomain = 'academic' | 'startup_pitch' | 'history' | 'technology' | 'automotive_ev' | 'biography_leader' | 'general';
 
 export function classifyTopicDomain(topic: string): TopicDomain {
   const lower = topic.toLowerCase();
 
-  if (/\b(sierra|tata|ev|electric vehicle|cars?|automobiles?|automotive|suvs?|tesla|nexon|curvv)\b/i.test(lower)) {
+  if (/\b(modi|narendra|biden|trump|obama|gandhi|lincoln|minister|president|prime minister|politician|governance|leader|biography)\b/i.test(lower)) {
+    return 'biography_leader';
+  }
+  if (/\b(sierra|tata|ev|electric vehicle|cars?|automobiles?|automotive|suvs?|tesla|nexon|curvv|toyota)\b/i.test(lower)) {
     return 'automotive_ev';
   }
-  if (/\b(healthcare|medical|medicine|health|doctor|hospital|patient|pharma|clinical)\b/i.test(lower)) {
+  if (/\b(healthcare|medical|medicine|health|doctor|hospital|patient|pharma|clinical|climate|climate change|global warming|environmental)\b/i.test(lower)) {
     return 'academic';
   }
   if (/\b(history|space program|isro|nasa|moon|mars|satellites?|rockets?|century|revolution|war|archives?)\b/i.test(lower)) {
@@ -175,10 +178,72 @@ export function classifyTopicDomain(topic: string): TopicDomain {
   return 'general';
 }
 
+// Semantic Topic Relevance Validator
+export function validatePresentationTopicRelevance(presentation: Presentation): { isValid: boolean; relevanceScore: number; reason?: string } {
+  const cleanTopic = presentation.topic.trim();
+  const topicWords = cleanTopic.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+  if (topicWords.length === 0) return { isValid: true, relevanceScore: 1.0 };
+
+  const allText = presentation.slides.map(s => `${s.title} ${s.subtitle || ''} ${s.content.join(' ')}`).join(' ').toLowerCase();
+
+  let topicMatches = 0;
+  topicWords.forEach(w => {
+    const matches = (allText.match(new RegExp(w, 'gi')) || []).length;
+    topicMatches += matches;
+  });
+
+  const domain = classifyTopicDomain(cleanTopic);
+  if (domain === 'biography_leader' || domain === 'automotive_ev' || domain === 'history') {
+    if (allText.includes('zero-trust network access') || allText.includes('fido2 hardware security keys') || allText.includes('manual slide friction')) {
+      return {
+        isValid: false,
+        relevanceScore: 0.1,
+        reason: `Cross-topic leak detected: IT boilerplate text found in ${domain} topic "${cleanTopic}"`,
+      };
+    }
+  }
+
+  const isValid = topicMatches >= 2 || (domain !== 'general' && presentation.slides.length > 0);
+  return {
+    isValid,
+    relevanceScore: isValid ? 0.9 : 0.2,
+    reason: !isValid ? `Insufficient topic relevance for "${cleanTopic}"` : undefined,
+  };
+}
+
 // Generate Substantive Topic-Driven Bullet Content
 export function generateTopicBullets(topic: string, layout: SlideLayoutType, title: string, index: number): string[] {
   const domain = classifyTopicDomain(topic);
   const clean = topic.trim();
+
+  if (domain === 'biography_leader') {
+    if (layout === 'title') {
+      return [
+        `Executive leadership profile and strategic governance tenure of ${clean}`,
+        `Key policy initiatives, economic reforms, and institutional restructuring milestones`,
+        `Global diplomatic engagement and multi-lateral international partnerships`,
+      ];
+    }
+    if (layout === 'problem') {
+      return [
+        `Addressing structural socio-economic challenges, infrastructure deficits, and administrative friction`,
+        `Navigating geopolitical complexities, macroeconomic volatility, and public policy execution hurdles`,
+        `Accelerating digital governance, financial inclusion, and multi-sectoral public welfare reforms`,
+      ];
+    }
+    if (layout === 'solution') {
+      return [
+        `Implementation of flagship national development programs and digital public infrastructure`,
+        `Strategic policy frameworks expanding manufacturing, renewable energy, and economic corridors`,
+        `Institutional reform driving administrative transparency, technology integration, and direct benefit transfers`,
+      ];
+    }
+    return [
+      `Key policy milestones and legislative initiatives enacted during the tenure of ${clean}`,
+      `Macroeconomic development metrics, infrastructure investments, and international summits`,
+      `Enduring public policy legacy and multi-year strategic vision shaping long-term institutional growth`,
+    ];
+  }
 
   if (domain === 'automotive_ev') {
     if (layout === 'title') {
@@ -274,7 +339,55 @@ export function generateFallbackOutline(
 
   let domainTemplates: { title: string; summary: string; layout: SlideLayoutType }[] = [];
 
-  if (domain === 'automotive_ev') {
+  if (domain === 'biography_leader') {
+    domainTemplates = [
+      {
+        title: `Leadership Profile: ${cleanTopic}`,
+        summary: `Executive biography, strategic vision, and governance tenure for ${audience}.`,
+        layout: 'title',
+      },
+      {
+        title: 'Socio-Economic Deficits & Public Challenges',
+        summary: `Examining macro challenges, infrastructure gaps, and public policy hurdles.`,
+        layout: 'problem',
+      },
+      {
+        title: 'Flagship Policy Reforms & Strategic Vision',
+        summary: `Detailing major governance initiatives, digital infrastructure, and policy frameworks.`,
+        layout: 'solution',
+      },
+      {
+        title: 'Baseline Governance vs. Post-Reform Milestones',
+        summary: `Comparing legacy administrative processes against modernized digital public services.`,
+        layout: 'comparison',
+      },
+      {
+        title: 'Chronological Policy & Legislative Roadmap',
+        summary: `Sequential progression of major policy rollouts, economic summits, and legislative milestones.`,
+        layout: 'process',
+      },
+      {
+        title: 'Macro Economic & Infrastructure Metrics',
+        summary: `Tracking key developmental metrics, foreign direct investment, and public welfare reach.`,
+        layout: 'statistics',
+      },
+      {
+        title: 'Multi-Year Growth & Policy Impact Trajectory',
+        summary: `Visualizing economic indicators, digital adoption growth, and infrastructure scaling.`,
+        layout: 'chart',
+      },
+      {
+        title: 'Global Diplomatic & Strategic International Relations',
+        summary: `Highlighting bilateral agreements, global summits, and international leadership presence.`,
+        layout: 'text-image',
+      },
+      {
+        title: 'Enduring Policy Legacy & Future Strategic Horizon',
+        summary: `Consolidating long-term developmental impact and institutional vision.`,
+        layout: 'conclusion',
+      },
+    ];
+  } else if (domain === 'automotive_ev') {
     domainTemplates = [
       {
         title: `${cleanTopic}: The Iconic Electric SUV Overview`,

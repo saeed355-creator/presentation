@@ -78,6 +78,7 @@ function GenerateFormContent() {
   const [isGeneratingOutline, setIsGeneratingOutline] = useState(false);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
   const [recentDrafts, setRecentDrafts] = useState<any[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setRecentDrafts(getSavedPresentations().slice(0, 3));
@@ -198,17 +199,18 @@ function GenerateFormContent() {
       const data = await res.json();
 
       let deck = data.presentation;
-      if (!deck) {
-        deck = generateFallbackPresentation(topic, audience, purpose, outline.length > 0 ? outline.length : slideCount, tone, theme, outline);
+      if (!deck || !data.success) {
+        setErrorMessage(data.error || 'Unable to generate a presentation for this topic. Please try again.');
+        setStep('config');
+        return;
       }
 
       savePresentation(deck);
       router.push(`/editor/${deck.id}`);
-    } catch (err) {
-      console.error('Full generation error, using fallback deck:', err);
-      const fallbackDeck = generateFallbackPresentation(topic, audience, purpose, outline.length > 0 ? outline.length : slideCount, tone, theme, outline);
-      savePresentation(fallbackDeck);
-      router.push(`/editor/${fallbackDeck.id}`);
+    } catch (err: any) {
+      console.error('Full generation error:', err);
+      setErrorMessage(err?.message || 'Unable to generate a presentation for this topic. Please try again.');
+      setStep('config');
     }
   };
 
@@ -216,6 +218,7 @@ function GenerateFormContent() {
   const handleConfirmBrief = async (brief: PresentationBrief) => {
     setIsBriefModalOpen(false);
     setCurrentBrief(brief);
+    setErrorMessage(null);
     setStep('generating');
     setCurrentStepIdx(0);
 
@@ -248,19 +251,18 @@ function GenerateFormContent() {
       const data = await res.json();
 
       let deck = data.presentation;
-      if (!deck) {
-        deck = generateFallbackPresentation(brief.topic, brief.audience as any, brief.purpose as any, brief.slideCount, brief.tone as any, theme);
-        deck.brief = brief;
+      if (!deck || !data.success) {
+        setErrorMessage(data.error || 'Unable to generate a presentation for this topic. Please try again.');
+        setStep('config');
+        return;
       }
 
       savePresentation(deck);
       router.push(`/editor/${deck.id}`);
-    } catch (err) {
-      console.error('Generation error, using fallback deck:', err);
-      const fallbackDeck = generateFallbackPresentation(brief.topic, brief.audience as any, brief.purpose as any, brief.slideCount, brief.tone as any, theme);
-      fallbackDeck.brief = brief;
-      savePresentation(fallbackDeck);
-      router.push(`/editor/${fallbackDeck.id}`);
+    } catch (err: any) {
+      console.error('Generation error:', err);
+      setErrorMessage(err?.message || 'Unable to generate a presentation for this topic. Please try again.');
+      setStep('config');
     }
   };
 
@@ -278,6 +280,23 @@ function GenerateFormContent() {
               Provide a topic and context, and our AI will craft a stunning presentation ready for your next big meeting.
             </p>
           </div>
+
+          {/* Error Banner */}
+          {errorMessage && (
+            <div className="max-w-3xl mx-auto bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center justify-between text-red-700 text-sm font-sans">
+              <div className="flex items-center gap-2">
+                <span className="font-bold">Generation Notice:</span>
+                <span>{errorMessage}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setErrorMessage(null)}
+                className="text-xs font-mono font-semibold underline hover:no-underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
 
           {/* Elevated White Card Container */}
           <div className="bg-white border border-[#E4E1DA] rounded-3xl p-8 sm:p-12 shadow-card max-w-3xl mx-auto space-y-8">
