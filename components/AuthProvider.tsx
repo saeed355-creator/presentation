@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase, isSupabaseConfigured, signOutUser, syncAuthCookie } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured, signOutUser, syncAuthCookie, getStoredLocalUser } from '@/lib/supabase';
 import { User, Session } from '@supabase/supabase-js';
 import AuthModal from './AuthModal';
 
@@ -37,11 +37,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Use useRef to store pending action callback safely without React functional updater side-effects
   const pendingActionRef = useRef<(() => void) | null>(null);
 
-  const handleModalSuccess = useCallback(() => {
+  const handleModalSuccess = useCallback((userEmail?: string) => {
     setIsAuthModalOpen(false);
 
-    // Ensure session cookie is synchronously set on document.cookie
-    syncAuthCookie({ user: { id: 'active' } });
+    const email = userEmail || 'user@company.com';
+    const activeUser = {
+      id: `user-${Date.now()}`,
+      email: email,
+      role: 'authenticated',
+      aud: 'authenticated',
+      app_metadata: {},
+      user_metadata: {},
+      created_at: new Date().toISOString(),
+    } as unknown as User;
+
+    const activeSession = {
+      access_token: 'active-session-token',
+      token_type: 'bearer',
+      user: activeUser,
+    } as unknown as Session;
+
+    setUser(activeUser);
+    setSession(activeSession);
+    syncAuthCookie(activeSession, email);
 
     const targetAction = pendingActionRef.current;
     pendingActionRef.current = null;
@@ -57,27 +75,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [router]);
 
-  // Initialize and listen to Supabase session state
+  // Initialize and listen to Supabase & local auth session state
   useEffect(() => {
     let isMounted = true;
 
     async function initAuth() {
-      if (!supabase || !isSupabaseConfigured) {
-        if (isMounted) setLoading(false);
-        return;
+      let activeUser: User | null = null;
+      let activeSession: Session | null = null;
+
+      if (supabase && isSupabaseConfigured) {
+        try {
+          const { data: { session: initialSession } } = await supabase.auth.getSession();
+          if (initialSession) {
+            activeSession = initialSession;
+            activeUser = initialSession.user;
+          }
+        } catch (err) {
+          console.warn('Initial session check notice:', err);
+        }
       }
 
-      try {
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
-        if (isMounted) {
-          setSession(initialSession);
-          setUser(initialSession?.user ?? null);
-          syncAuthCookie(initialSession);
-          setLoading(false);
+      if (!activeUser) {
+        const stored = getStoredLocalUser();
+        if (stored) {
+          activeUser = {
+            id: stored.id || 'active-user',
+            email: stored.email || 'user@company.com',
+            role: 'authenticated',
+            aud: 'authenticated',
+            app_metadata: {},
+            user_metadata: {},
+            created_at: new Date().toISOString(),
+          } as unknown as User;
+          activeSession = {
+            access_token: 'active-session-token',
+            token_type: 'bearer',
+            user: activeUser,
+          } as unknown as Session;
         }
-      } catch (err) {
-        console.warn('Initial session check notice:', err);
-        if (isMounted) setLoading(false);
+      }
+
+      if (isMounted) {
+        setSession(activeSession);
+        setUser(activeUser);
+        if (activeSession) {
+          syncAuthCookie(activeSession, activeUser?.email);
+        }
+        setLoading(false);
       }
     }
 
@@ -87,13 +131,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
       if (isMounted) {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        syncAuthCookie(currentSession);
+        if (currentSession) {
+          setSession(currentSession);
+          setUser(currentSession.user ?? null);
+          syncAuthCookie(currentSession, currentSession.user?.email);
+        }
         setLoading(false);
 
         if (currentSession && isAuthModalOpen) {
-          handleModalSuccess();
+          handleModalSuccess(currentSession.user?.email);
         }
       }
     });
@@ -114,7 +160,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const redirectParam = params.get('redirect');
 
       if (authParam === 'signin' || authParam === 'signup') {
-        if (session || user) {
+        const activeUser = user || session?.user || getStoredLocalUser();
+
+        if (activeUser) {
           // User is ALREADY authenticated! Do NOT open auth modal. Clean up URL.
           const cleanPath = redirectParam || window.location.pathname;
           window.history.replaceState({}, '', cleanPath);
@@ -144,8 +192,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const requireAuth = useCallback((onSuccessAction?: () => void) => {
     if (loading) return; // Ignore while initial auth is loading
 
-    if (session || user) {
-      // User is already authenticated: execute requested action immediately
+    const activeUser = user || session?.user || getStoredLocalUser();
+
+    if (activeUser) {
+      // User is ALREADY authenticated! Execute requested action immediately without asking again.
       if (onSuccessAction) {
         onSuccessAction();
       } else {

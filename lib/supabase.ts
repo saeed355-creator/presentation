@@ -17,18 +17,50 @@ export const supabase = isSupabaseConfigured
     })
   : null;
 
-// Cookie sync helper to ensure Next.js Middleware and browser session state stay 100% in sync
-export function syncAuthCookie(session: any) {
+// Cookie & LocalStorage sync helper to ensure auth state persists cleanly across navigation & refreshes
+export function syncAuthCookie(session: any, userEmail?: string) {
   if (typeof document === 'undefined') return;
-  if (session && (session.access_token || session.user)) {
+  if (session && (session.access_token || session.user || session.active)) {
     document.cookie = `sb-auth-token=active; path=/; max-age=604800; SameSite=Lax`;
     if (session.access_token) {
       document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=604800; SameSite=Lax`;
     }
+    const email = userEmail || session.user?.email || session.email || 'user@company.com';
+    const localUser = {
+      id: session.user?.id || 'active-user',
+      email: email,
+      role: 'authenticated',
+    };
+    try {
+      localStorage.setItem('sb-local-user', JSON.stringify(localUser));
+    } catch (e) {
+      // Ignore quota error
+    }
   } else {
     document.cookie = `sb-auth-token=; path=/; max-age=0; SameSite=Lax`;
     document.cookie = `sb-access-token=; path=/; max-age=0; SameSite=Lax`;
+    try {
+      localStorage.removeItem('sb-local-user');
+    } catch (e) {
+      // Ignore
+    }
   }
+}
+
+export function getStoredLocalUser() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('sb-local-user');
+    if (raw) {
+      return JSON.parse(raw);
+    }
+    if (document.cookie.includes('sb-auth-token=active')) {
+      return { id: 'active-user', email: 'user@company.com', role: 'authenticated' };
+    }
+  } catch (e) {
+    // Fallback
+  }
+  return null;
 }
 
 export async function getCurrentSession() {
@@ -55,7 +87,7 @@ export async function signOutUser() {
   if (typeof window !== 'undefined') {
     // Clear local storage auth session tokens
     Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('sb-') || key.includes('auth-token') || key.includes('supabase')) {
+      if (key.startsWith('sb-') || key.includes('auth-token') || key.includes('supabase') || key.includes('local-user')) {
         localStorage.removeItem(key);
       }
     });

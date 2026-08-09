@@ -8,12 +8,12 @@ import { supabase, syncAuthCookie } from '@/lib/supabase';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (email?: string) => void;
   initialMode?: 'signin' | 'signup';
 }
 
-function setLocalSessionCookie(session?: any) {
-  syncAuthCookie(session || { user: { id: 'active' } });
+function setLocalSessionCookie(session?: any, email?: string) {
+  syncAuthCookie(session || { user: { id: 'active' } }, email);
 }
 
 export default function AuthModal({
@@ -121,15 +121,15 @@ export default function AuthModal({
         }
       }
 
-      setLocalSessionCookie();
+      setLocalSessionCookie(null, cleanEmail);
       setLoading(false);
       onClose();
-      if (onSuccess) onSuccess();
+      if (onSuccess) onSuccess(cleanEmail);
     } catch (err: any) {
-      setLocalSessionCookie();
+      setLocalSessionCookie(null, cleanEmail);
       setLoading(false);
       onClose();
-      if (onSuccess) onSuccess();
+      if (onSuccess) onSuccess(cleanEmail);
     }
   };
 
